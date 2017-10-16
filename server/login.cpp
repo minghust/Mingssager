@@ -23,7 +23,8 @@ bool SaveInfo(string regName, string regEmail, string regPasswd)
 int VerifyUserLogin(string loginName, string loginPasswd)
 {
 	Md5Encode md5;
-	fstream f(USER_INFO_FILE);
+	fstream f;
+	f.open(USER_INFO_FILE, ios::in);
 	string buf;
 	if (f.is_open())
 	{

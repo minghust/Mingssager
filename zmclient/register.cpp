@@ -29,13 +29,16 @@ void Register::on_buttonBox_accepted()
     }
     else
     {
-        if(SendtoServer(str1.toStdString()+"+"+str2.toStdString()+"+"+str3.toStdString(), "register"))
+        int re = SendtoServer(str1.toStdString()+"+"+str2.toStdString()+"+"+str3.toStdString(), "register");
+        if(re == REGISTER_SUCCESS)
         {
             QMessageBox::information(this, QString::fromLocal8Bit("³É¹¦"), QString::fromLocal8Bit("×¢²áÍê³É£¡"));
+            return;
         }
-        else
+        else if(re == REGISTER_FAILURE)
         {
             QMessageBox::information(this, QString::fromLocal8Bit("´íÎó"), QString::fromLocal8Bit("×¢²áÊ§°Ü£¡"));
+            return;
         }
     }
 }

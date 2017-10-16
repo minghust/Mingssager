@@ -5,19 +5,19 @@
 #include <list>
 #include <algorithm>
 #include <string.h>
+#include <windows.h>
 #include <map>
 #include "login.h"
 
+using namespace std;
 const int MAXCONN = 5;
 const int BUFLEN = 255;
-const char USER_LOGIN[] = "USER_LOGIN";
-const char USER_REGISTER[] = "USER_REGISTER";
-const char USER_GETPASSWDBACK[] = "USER_GETPASSWDBACK";
-const char end[] = "END";
+const string LOGIN = "login";
+const string REGISTER = "register";
+const string GETPASSWDBACK = "getpasswdback";
 
 void SplitString(const string& s, vector<string>& v, const string& c);
 
-using namespace std;
 typedef list<SOCKET> ListCONN;
 typedef list<SOCKET> ListConErr;
 
@@ -38,7 +38,6 @@ void main(int argc, char* argv[])
 	u_long uNonBlock;
 
 	map<string, string>offlineBuf; // offline message
-
 	//初始化 winsock
 	nRC = WSAStartup(0x0101, &wsaData);
 	if (nRC)
@@ -177,16 +176,16 @@ void main(int argc, char* argv[])
 					}
 					else
 					{
+						vector<string>op;
+						string str(recvBuf);
+						SplitString(str, op, "!");
 						//接收数据成功，保存在发送缓冲区中，
 						//以发送到所有客户去
-						if (strcmp(recvBuf, USER_LOGIN) == 0)
+						if (op[0] == LOGIN)
 						{
-							sprintf(sendBuf, "%s", "PREPARE_LOGIN");
-							send(*itor, sendBuf, strlen(sendBuf), 0);
-							recv(*itor, recvBuf, BUFLEN, 0);
-							string str(recvBuf);
+							cout << "recvBuf" << op[1] << endl;
 							vector<string> v;
-							SplitString(str, v, "+");
+							SplitString(op[1], v, "+");
 							int re = VerifyUserLogin(v[0], v[1]);
 							if (re == LOGIN_SUCCESS)
 							{
@@ -209,13 +208,39 @@ void main(int argc, char* argv[])
 								send(*itor, sendBuf, strlen(sendBuf), 0);
 							}
 						}
-						else if (strcmp(recvBuf, USER_REGISTER) == 0)
+						else if (op[0] == REGISTER)
 						{
-
+							vector<string> v;
+							cout << "recvBuf:" << op[1] << endl;
+							SplitString(op[1], v, "+");
+							bool re = SaveInfo(v[0], v[1], v[2]);
+							if (re)
+							{
+								sprintf(sendBuf, "%s", "REGISTER_SUCCESS");
+								send(*itor, sendBuf, strlen(sendBuf), 0);
+							}
+							else
+							{
+								sprintf(sendBuf, "%s", "REGISTER_FAILURE");
+								send(*itor, sendBuf, strlen(sendBuf), 0);
+							}
 						}
-						else if (strcmp(recvBuf, USER_GETPASSWDBACK) == 0)
+						else if (op[0] == GETPASSWDBACK)
 						{
-
+							cout << "recvBuf" << op[0] << endl;
+							vector<string> v;
+							SplitString(op[1], v, "+");
+							bool re = GetbackPasswd(v[0], v[1]);
+							if (re)
+							{
+								sprintf(sendBuf, "%s", "GETPASSWDBACK_SUCCESS");
+								send(*itor, sendBuf, strlen(sendBuf), 0);
+							}
+							else
+							{
+								sprintf(sendBuf, "%s", "GETPASSWDBACK_FAILURE");
+								send(*itor, sendBuf, strlen(sendBuf), 0);
+							}
 						}
 					}
 				}

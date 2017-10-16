@@ -1,101 +1,87 @@
 #include "sendtoserver.h"
 #include <QMessageBox>
+#include <QDebug>
+#include <QAbstractSocket>
 
-const char USER_LOGIN[] = "USER_LOGIN";
-const char USER_REGISTER[] = "USER_REGISTER";
-const char USER_GETPASSWDBACK[] = "USER_GETPASSWDBACK";
 const char end[] = "END";
 
 int SendtoServer(string str, string option)
 {
+    char sendBuf[BUFLEN], recvBuf[BUFLEN];
+    string tmp = option;
+    option = option + "!" + str;
+
+    strcpy(sendBuf, option.c_str());
+    memset(recvBuf, '\0', BUFLEN);
+
     QTcpSocket *clientsocket = new QTcpSocket();
     clientsocket->connectToHost("127.0.0.1", 5050);
-    bool is_conn = clientsocket->waitForConnected();
-    if(is_conn == false)
+    clientsocket->waitForConnected();
+
+    if(tmp == "login")
     {
-        return 0;
+        clientsocket->write(sendBuf, strlen(sendBuf)+1);
+        clientsocket->waitForBytesWritten();
+
+        clientsocket->waitForReadyRead();
+        clientsocket->read(recvBuf, BUFLEN);
+
+        if(strcmp(recvBuf, "LOGIN_SUCCESS") == 0) // login success
+        {
+            return LOGIN_SUCCESS;
+        }
+        else if(strcmp(recvBuf, "INVALID_USERNAME") == 0)
+        {
+            return INVALID_USERNAME;
+        }
+        else if(strcmp(recvBuf, "PSW_ERROR") == 0)
+        {
+            return PSW_ERROR;
+        }
+        else if(strcmp(recvBuf, "FILE_ERROR") == 0)
+        {
+            return FILE_ERROR;
+        }
     }
+    else if(tmp == "register") // test OK
+    {
+        clientsocket->write(sendBuf, strlen(sendBuf)+1);
+        clientsocket->waitForBytesWritten();
+
+        clientsocket->waitForReadyRead();
+        clientsocket->read(recvBuf, BUFLEN);
+
+        if(strcmp(recvBuf, "REGISTER_SUCCESS") == 0) // login success
+        {
+            return REGISTER_SUCCESS;
+        }
+        else if(strcmp(recvBuf, "REGISTER_FAILURE") == 0)
+        {
+            return REGISTER_FAILURE;
+        }
+    }
+    else if(tmp == "getpasswdback")
+    {
+        clientsocket->write(sendBuf, strlen(sendBuf)+1);
+        clientsocket->waitForBytesWritten();
+
+        clientsocket->waitForReadyRead();
+        clientsocket->read(recvBuf, BUFLEN);
+
+        if(strcmp(recvBuf, "GETPASSWDBACK_SUCCESS") == 0) // login success
+        {
+            return GETPASSWDBACK_SUCCESS;
+        }
+        else if(strcmp(recvBuf, "GETPASSWDBACK_FAILURE") == 0)
+        {
+            return GETPASSWDBACK_FAILURE;
+        }
+    }
+
+    clientsocket->disconnectFromHost();
+    if (clientsocket->state() == QAbstractSocket::UnconnectedState || clientsocket->waitForDisconnected(1000))
+        qDebug("Disconnected!");
     else
-    {
-        return 1;
-    }
+        qDebug("Disconnect faild!");
+    return 0;
 }
-
-//int SendtoServer(string str, string option)
-//{
-//    WSADATA wsaData;
-//    int nRC;
-//    sockaddr_in srvAddr, clientAddr;
-//    SOCKET clientSock;
-//    char sendBuf[BUFLEN], recvBuf[BUFLEN];
-
-//    strcpy(sendBuf, str.c_str());
-
-//    //初始化 winsock
-//    nRC = WSAStartup(0x0101, &wsaData);
-//    //创建 client socket
-//    clientSock = socket(AF_INET, SOCK_STREAM, 0);
-
-//    clientAddr.sin_family = AF_INET;
-//    clientAddr.sin_port = htons(0);
-//    clientAddr.sin_addr.S_un.S_addr = inet_addr("127.0.0.2");
-//    nRC = bind(clientSock, (LPSOCKADDR)&clientAddr, sizeof(clientAddr));
-
-//    //准备服务器的信息，这里需要指定服务器的地址
-//    srvAddr.sin_family = AF_INET;
-//    srvAddr.sin_port = htons(5050);
-//    srvAddr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
-
-//    //连接服务器
-//    nRC = connect(clientSock,(LPSOCKADDR)&srvAddr, sizeof(srvAddr));
-
-//    //向服务器发送数据和从服务器接受数据
-//    memset(recvBuf, '\0', BUFLEN);
-
-//    if(option == "login")
-//    {
-//        nRC = send(clientSock, USER_LOGIN, strlen(USER_LOGIN), 0);
-//        nRC = recv(clientSock, recvBuf, BUFLEN, 0);
-//        if(strcmp(recvBuf, "PREPARE_LOGIN") == 0)
-//        {
-//            nRC = send(clientSock, sendBuf, strlen(sendBuf), 0);
-//            nRC = recv(clientSock, recvBuf, BUFLEN, 0);
-//            if(strcmp(recvBuf, "LOGIN_SUCCESS") == 0) // login success
-//            {
-//                return 1;
-//            }
-//            else if(strcmp(recvBuf, "INVALID_USERNAME") == 0)
-//            {
-
-//                return INVALID_USERNAME;
-//            }
-//            else if(strcmp(recvBuf, "PSW_ERROR") == 0)
-//            {
-
-//                return PSW_ERROR;
-//            }
-//            else if(strcmp(recvBuf, "FILE_ERROR") == 0)
-//            {
-
-//                return FILE_ERROR;
-//            }
-//        }
-//        else
-//        {
-
-//        }
-//    }
-//    else if(option == "register")
-//    {
-
-//    }
-//    else if(option == "getpasswdback")
-//    {
-
-//    }
-
-
-//    closesocket(clientSock);
-//    WSACleanup();
-//    return 0;
-//}

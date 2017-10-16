@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <iostream>
 #include "md5_encode.h"
 
 const char USER_INFO_FILE[] = "info.txt";
@@ -13,7 +14,6 @@ const int INVALID_USERNAME = -1;
 const int PSW_ERROR = -2;
 
 using std::string;
-using std::vector;
 
 int VerifyUserLogin(string loginName, string loginPasswd);
 bool GetbackPasswd(string userEmail, string newp);

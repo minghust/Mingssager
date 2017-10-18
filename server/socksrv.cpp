@@ -7,6 +7,7 @@
 #include <string.h>
 #include <windows.h>
 #include <map>
+#include <sstream>
 #include "login.h"
 
 using namespace std;
@@ -15,12 +16,18 @@ const int BUFLEN = 255;
 const string LOGIN = "login";
 const string REGISTER = "register";
 const string GETPASSWDBACK = "getpasswdback";
+const string GETUSERLIST = "getuserlist";
 
 void SplitString(const string& s, vector<string>& v, const string& c);
-
 typedef list<SOCKET> ListCONN;
 typedef list<SOCKET> ListConErr;
 
+typedef struct
+{
+	string name;
+	string addr;
+	string isOnline;
+}UserList;
 
 void main(int argc, char* argv[])
 {
@@ -38,6 +45,7 @@ void main(int argc, char* argv[])
 	u_long uNonBlock;
 
 	map<string, string>offlineBuf; // offline message
+	vector<UserList>userList;
 	//≥ı ºªØ winsock
 	nRC = WSAStartup(0x0101, &wsaData);
 	if (nRC)
@@ -191,6 +199,16 @@ void main(int argc, char* argv[])
 							{
 								sprintf(sendBuf, "%s", "LOGIN_SUCCESS");
 								send(*itor, sendBuf, strlen(sendBuf), 0);
+								
+								// send to client userList
+								string s = "";
+								for (int i = 0; i < userList.size(); i++)
+								{
+									userList[i].isOnline = "yes";
+									s += userList[i].name + "+" + userList[i].addr + "+" + userList[i].isOnline + "!";
+								}
+								sprintf(sendBuf, "%s", s.c_str());
+								send(*itor, sendBuf, strlen(sendBuf), 0);
 							}
 							else if (re == PSW_ERROR)
 							{
@@ -213,7 +231,9 @@ void main(int argc, char* argv[])
 							vector<string> v;
 							cout << "recvBuf:" << op[1] << endl;
 							SplitString(op[1], v, "+");
-							bool re = SaveInfo(v[0], v[1], v[2]);
+							bool re = SaveInfo(v[0], v[1], v[2], v[3]);
+							UserList tmp = {v[0], v[3], "no"};
+							userList.push_back(tmp);
 							if (re)
 							{
 								sprintf(sendBuf, "%s", "REGISTER_SUCCESS");

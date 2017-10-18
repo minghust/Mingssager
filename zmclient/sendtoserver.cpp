@@ -2,15 +2,21 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QAbstractSocket>
+#include <sstream>
 
-const char end[] = "END";
+const int MINPORTNUM = 20000;
+const int MAXPORTNUM = 25000;
+// receive user list from server, used for chat and transfer files.
+string userList = "";
+string port = "";
 
-int SendtoServer(string str, string option)
+int Send::SendtoServer(string str, string option)
 {
     char sendBuf[BUFLEN], recvBuf[BUFLEN];
     string tmp = option;
-    option = option + "!" + str;
 
+    port = GeneratePort();
+    option = option + "!" + str;
     strcpy(sendBuf, option.c_str());
     memset(recvBuf, '\0', BUFLEN);
 
@@ -28,7 +34,10 @@ int SendtoServer(string str, string option)
 
         if(strcmp(recvBuf, "LOGIN_SUCCESS") == 0) // login success
         {
-            return LOGIN_SUCCESS;
+            clientsocket->waitForReadyRead();
+            clientsocket->read(recvBuf, BUFLEN);
+            userList(recvBuf);
+        	return LOGIN_SUCCESS;
         }
         else if(strcmp(recvBuf, "INVALID_USERNAME") == 0)
         {
@@ -45,6 +54,10 @@ int SendtoServer(string str, string option)
     }
     else if(tmp == "register") // test OK
     {
+        memset(sendBuf, '\0', BUFLEN);
+        option = option + "+" + port;
+        strcpy(sendBuf, option.c_str());
+
         clientsocket->write(sendBuf, strlen(sendBuf)+1);
         clientsocket->waitForBytesWritten();
 
@@ -77,11 +90,22 @@ int SendtoServer(string str, string option)
             return GETPASSWDBACK_FAILURE;
         }
     }
-
     clientsocket->disconnectFromHost();
     if (clientsocket->state() == QAbstractSocket::UnconnectedState || clientsocket->waitForDisconnected(1000))
         qDebug("Disconnected!");
     else
         qDebug("Disconnect faild!");
     return 0;
+}
+
+string& GeneratePort()
+{
+    srand((unsigned)time(0));
+    int port = rand() % (MAXPORTNUM - MINPORTNUM + 1) + MINPORTNUM;
+    string p;
+    stringstream ss;
+    ss << port;
+    ss >> p;
+
+    return p;
 }

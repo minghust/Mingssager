@@ -30,7 +30,9 @@ SOURCES += \
     register.cpp \
     getpasswdback.cpp \
     chat.cpp \
-    sendtoserver.cpp
+    sendtoserver.cpp \
+    receivefile.cpp \
+    server.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -38,10 +40,13 @@ HEADERS += \
     getpasswdback.h \
     chat.h \
     clientstart.h \
-    sendtoserver.h
+    sendtoserver.h \
+    receivefile.h \
+    server.h
 
 FORMS += \
         mainwindow.ui \
     register.ui \
     getpasswdback.ui \
-    chat.ui
+    chat.ui \
+    receivefile.ui

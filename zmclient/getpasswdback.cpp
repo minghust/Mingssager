@@ -26,7 +26,7 @@ void GetPasswdBack::on_buttonBox_accepted()
         QMessageBox::information(this, QString::fromLocal8Bit("错误"), QString::fromLocal8Bit("信息不完整！"));
         return;
     }
-    else if(SendtoServer(str1.toStdString()+"+"+str2.toStdString(), "getpasswdback"))
+    else if(Send::SendtoServer(str1.toStdString()+"+"+str2.toStdString(), "getpasswdback"))
     {
         QMessageBox::information(this, QString::fromLocal8Bit("成功"), QString::fromLocal8Bit("密码重设成功！"));
         return;

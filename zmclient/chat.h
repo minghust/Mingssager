@@ -13,7 +13,7 @@ class Chat : public QWidget
 
 public:
     explicit Chat(QWidget *parent = 0);
-
+    void ShowUserList(std::string str);
     ~Chat();
 
 private slots:

@@ -17,7 +17,7 @@ using std::string;
 
 int VerifyUserLogin(string loginName, string loginPasswd);
 bool GetbackPasswd(string userEmail, string newp);
-bool SaveInfo(string regName, string regEmail, string regPasswd);
+bool SaveInfo(string regName, string regEmail, string regPasswd, string port);
 
 
 #endif // LOGIN_H

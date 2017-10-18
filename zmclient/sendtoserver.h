@@ -4,6 +4,8 @@
 #include <string>
 #include <QTcpSocket>
 #include <QHostAddress>
+#include <cstdlib>
+#include <ctime>
 
 using std::string;
 
@@ -17,5 +19,11 @@ const int INVALID_USERNAME = -1;
 const int PSW_ERROR = -2;
 const int BUFLEN = 255;
 
-int SendtoServer(string str, string option);
+
+
+class Send{
+public:
+    int SendtoServer(string str, string option);
+}
+
 #endif // SENDTOSERVER_H

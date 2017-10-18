@@ -3,7 +3,7 @@
 
 using namespace std;
 
-bool SaveInfo(string regName, string regEmail, string regPasswd)
+bool SaveInfo(string regName, string regEmail, string regPasswd, string port)
 {
 	Md5Encode md5;
 	if (regName.empty() || regEmail.empty() || regPasswd.empty())
@@ -12,7 +12,7 @@ bool SaveInfo(string regName, string regEmail, string regPasswd)
 	f.open(USER_INFO_FILE, ios::out | ios::app);
 	if (f.is_open())
 	{
-		f << regName << endl << regEmail << endl << md5.Encode(regPasswd) << endl;
+		f << regName << endl << regEmail << endl << md5.Encode(regPasswd) << port << endl;
 		f.close();
 		return true;
 	}
@@ -42,8 +42,9 @@ int VerifyUserLogin(string loginName, string loginPasswd)
 			}
 			else
 			{
-				getline(f, buf);
-				getline(f, buf);
+				getline(f, buf); // email
+				getline(f, buf); // passwd
+				getline(f, buf); // port
 			}
 		}
 		return INVALID_USERNAME; // no such user
@@ -68,12 +69,16 @@ bool GetbackPasswd(string userEmail, string newp)
 			tmp << buf << endl;
 			if (buf == userEmail)
 			{
-				getline(f, buf); // email
+				getline(f, buf); // passwd
 				tmp << md5.Encode(newp) << endl;
+				getline(f, buf); // port
+				tmp << buf << endl;
 			}
 			else
 			{
 				getline(f, buf); // passwd
+				tmp << buf << endl;
+				getline(f, buf); // port
 				tmp << buf << endl;
 			}
 		}

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>804</width>
-    <height>588</height>
+    <width>1037</width>
+    <height>657</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,12 +19,12 @@
      <x>20</x>
      <y>70</y>
      <width>191</width>
-     <height>491</height>
+     <height>561</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <widget class="QListWidget" name="friendList"/>
+     <widget class="QListWidget" name="friendsList"/>
     </item>
    </layout>
   </widget>
@@ -62,7 +62,7 @@
      <x>230</x>
      <y>430</y>
      <width>551</width>
-     <height>72</height>
+     <height>101</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -110,7 +110,7 @@
    <property name="geometry">
     <rect>
      <x>700</x>
-     <y>510</y>
+     <y>540</y>
      <width>80</width>
      <height>20</height>
     </rect>
@@ -123,7 +123,7 @@
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>550</y>
+     <y>610</y>
      <width>79</width>
      <height>20</height>
     </rect>
@@ -136,7 +136,7 @@
    <property name="geometry">
     <rect>
      <x>320</x>
-     <y>540</y>
+     <y>570</y>
      <width>451</width>
      <height>16</height>
     </rect>
@@ -149,7 +149,7 @@
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>520</y>
+     <y>570</y>
      <width>80</width>
      <height>20</height>
     </rect>
@@ -157,6 +157,39 @@
    <property name="text">
     <string>选 择 文 件</string>
    </property>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_5">
+   <property name="geometry">
+    <rect>
+     <x>800</x>
+     <y>70</y>
+     <width>181</width>
+     <height>561</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_5"/>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_6">
+   <property name="geometry">
+    <rect>
+     <x>800</x>
+     <y>40</y>
+     <width>181</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_6">
+    <item>
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>文 件 助 手</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

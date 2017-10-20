@@ -17,17 +17,11 @@ const string LOGIN = "login";
 const string REGISTER = "register";
 const string GETPASSWDBACK = "getpasswdback";
 const string GETUSERLIST = "getuserlist";
+const string OFFLINE = "offline";
+const string UPDATE = "update";
 
-void SplitString(const string& s, vector<string>& v, const string& c);
 typedef list<SOCKET> ListCONN;
 typedef list<SOCKET> ListConErr;
-
-typedef struct
-{
-	string name;
-	string addr;
-	string isOnline;
-}UserList;
 
 void main(int argc, char* argv[])
 {
@@ -44,8 +38,8 @@ void main(int argc, char* argv[])
 	FD_SET rfds, wfds;
 	u_long uNonBlock;
 
-	map<string, string>offlineBuf; // offline message
 	vector<UserList>userList;
+	map<string, string>offlineBuf; // offline message
 	//初始化 winsock
 	nRC = WSAStartup(0x0101, &wsaData);
 	if (nRC)
@@ -187,8 +181,8 @@ void main(int argc, char* argv[])
 						vector<string>op;
 						string str(recvBuf);
 						SplitString(str, op, "!");
-						//接收数据成功，保存在发送缓冲区中，
-						//以发送到所有客户去
+						// 接收数据成功，保存在发送缓冲区中，
+						// 以发送到所有客户去
 						if (op[0] == LOGIN)
 						{
 							cout << "recvBuf" << op[1] << endl;
@@ -201,11 +195,15 @@ void main(int argc, char* argv[])
 								send(*itor, sendBuf, strlen(sendBuf), 0);
 								
 								// send to client userList
+								UpdateUserList(userList);
 								string s = "";
 								for (int i = 0; i < userList.size(); i++)
 								{
-									userList[i].isOnline = "yes";
-									s += userList[i].name + "+" + userList[i].addr + "+" + userList[i].isOnline + "!";
+									if (userList[i].name == v[0])
+										userList[i].isOnline = true;
+									s += userList[i].name + "+" + v[2] + "+";
+									s += userList[i].isOnline ? "true" : "false";
+									s += "!";
 								}
 								sprintf(sendBuf, "%s", s.c_str());
 								send(*itor, sendBuf, strlen(sendBuf), 0);
@@ -231,9 +229,7 @@ void main(int argc, char* argv[])
 							vector<string> v;
 							cout << "recvBuf:" << op[1] << endl;
 							SplitString(op[1], v, "+");
-							bool re = SaveInfo(v[0], v[1], v[2], v[3]);
-							UserList tmp = {v[0], v[3], "no"};
-							userList.push_back(tmp);
+							bool re = SaveInfo(v[0], v[1], v[2]);
 							if (re)
 							{
 								sprintf(sendBuf, "%s", "REGISTER_SUCCESS");
@@ -261,6 +257,33 @@ void main(int argc, char* argv[])
 								sprintf(sendBuf, "%s", "GETPASSWDBACK_FAILURE");
 								send(*itor, sendBuf, strlen(sendBuf), 0);
 							}
+						}
+						else if (op[0] == OFFLINE)
+						{
+							for (int i = 0; i < userList.size(); i++)
+							{
+								if (userList[i].name == op[1])
+								{
+									userList[i].isOnline = false;
+								}
+							}
+						}
+						else if (op[0] == UPDATE)
+						{
+							UpdateUserList(userList);
+							string s = "";
+							vector<string>v;
+							SplitString(op[1], v, "+");
+							for (int i = 0; i < userList.size(); i++)
+							{
+								if (userList[i].name == v[0])
+									userList[i].isOnline = true;
+								s += userList[i].name + "+" + v[1] + "+";
+								s += userList[i].isOnline ? "true" : "false";
+								s += "!";
+							}
+							sprintf(sendBuf, "%s", s.c_str());
+							send(*itor, sendBuf, strlen(sendBuf), 0);
 						}
 					}
 				}

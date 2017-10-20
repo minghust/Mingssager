@@ -29,7 +29,7 @@ void Register::on_buttonBox_accepted()
     }
     else
     {
-        int re = Send::SendtoServer(str1.toStdString()+"+"+str2.toStdString()+"+"+str3.toStdString(), "register");
+        int re = SendtoServer(str1.toStdString()+"+"+str2.toStdString()+"+"+str3.toStdString(), "register");
         if(re == REGISTER_SUCCESS)
         {
             QMessageBox::information(this, QString::fromLocal8Bit("成功"), QString::fromLocal8Bit("注册完成！"));

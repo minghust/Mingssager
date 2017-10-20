@@ -42,7 +42,8 @@ HEADERS += \
     clientstart.h \
     sendtoserver.h \
     receivefile.h \
-    server.h
+    server.h \
+    updatethread.h
 
 FORMS += \
         mainwindow.ui \

@@ -10,12 +10,12 @@ const int MAXPORTNUM = 25000;
 string userList = "";
 string port = "";
 
-int Send::SendtoServer(string str, string option)
+int SendtoServer(string str, string option)
 {
     char sendBuf[BUFLEN], recvBuf[BUFLEN];
     string tmp = option;
 
-    port = GeneratePort();
+    GeneratePort();
     option = option + "!" + str;
     strcpy(sendBuf, option.c_str());
     memset(recvBuf, '\0', BUFLEN);
@@ -26,6 +26,10 @@ int Send::SendtoServer(string str, string option)
 
     if(tmp == "login")
     {
+        memset(sendBuf, '\0', BUFLEN);
+        option = option + "+" + port;
+        strcpy(sendBuf, option.c_str());
+
         clientsocket->write(sendBuf, strlen(sendBuf)+1);
         clientsocket->waitForBytesWritten();
 
@@ -36,7 +40,8 @@ int Send::SendtoServer(string str, string option)
         {
             clientsocket->waitForReadyRead();
             clientsocket->read(recvBuf, BUFLEN);
-            userList(recvBuf);
+            userList.clear();
+            userList = recvBuf;
         	return LOGIN_SUCCESS;
         }
         else if(strcmp(recvBuf, "INVALID_USERNAME") == 0)
@@ -54,10 +59,6 @@ int Send::SendtoServer(string str, string option)
     }
     else if(tmp == "register") // test OK
     {
-        memset(sendBuf, '\0', BUFLEN);
-        option = option + "+" + port;
-        strcpy(sendBuf, option.c_str());
-
         clientsocket->write(sendBuf, strlen(sendBuf)+1);
         clientsocket->waitForBytesWritten();
 
@@ -98,14 +99,11 @@ int Send::SendtoServer(string str, string option)
     return 0;
 }
 
-string& GeneratePort()
+void GeneratePort()
 {
     srand((unsigned)time(0));
-    int port = rand() % (MAXPORTNUM - MINPORTNUM + 1) + MINPORTNUM;
-    string p;
-    stringstream ss;
-    ss << port;
-    ss >> p;
-
-    return p;
+    int randomport = rand() % (MAXPORTNUM - MINPORTNUM + 1) + MINPORTNUM;
+    std::stringstream ss;
+    ss << randomport;
+    ss >> port;
 }

@@ -19,11 +19,6 @@ const int INVALID_USERNAME = -1;
 const int PSW_ERROR = -2;
 const int BUFLEN = 255;
 
-
-
-class Send{
-public:
-    int SendtoServer(string str, string option);
-}
-
+int SendtoServer(string str, string option);
+void GeneratePort();
 #endif // SENDTOSERVER_H

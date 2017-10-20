@@ -7,7 +7,7 @@
 #include <QString>
 #include <QMessageBox>
 
-
+string name = "";
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -33,28 +33,35 @@ void MainWindow::on_confirm_clicked()
     else
     {
         QString loginName = ui->userNameInput->text();
+        name = loginName.toStdString();
         QString loginPasswd = ui->passwdInput->text();
         // send to server
         int re = SendtoServer(loginName.toStdString()+"+"+loginPasswd.toStdString(), "login");
         if(re == LOGIN_SUCCESS) // login success
         {
             // enter in chat
+//            this->hide();
             Chat *ch = new Chat();
             ch->show();
         }
         else if(re == PSW_ERROR)
         {
             QMessageBox::information(this, QString::fromLocal8Bit("´íÎó"), QString::fromLocal8Bit("ÃÜÂë´íÎó£¡"));
+            ui->passwdInput->clear();
             return;
         }
         else if(re == INVALID_USERNAME)
         {
             QMessageBox::information(this, QString::fromLocal8Bit("´íÎó"), QString::fromLocal8Bit("ÎÞ´ËÓÃ»§£¬Çë×¢²á£¡"));
+            ui->userNameInput->clear();
+            ui->passwdInput->clear();
             return;
         }
         else if(re == FILE_ERROR)
         {
             QMessageBox::information(this, QString::fromLocal8Bit("´íÎó"), QString::fromLocal8Bit("Êý¾Ý¶Á´íÎó£¡"));
+            ui->userNameInput->clear();
+            ui->passwdInput->clear();
             return;
         }
     }

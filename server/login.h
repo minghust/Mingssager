@@ -14,10 +14,18 @@ const int INVALID_USERNAME = -1;
 const int PSW_ERROR = -2;
 
 using std::string;
+ 
+typedef struct
+{
+	string name;
+	bool isOnline;
+}UserList;
 
+void SplitString(const string& s, std::vector<string>& v, const string& c);
 int VerifyUserLogin(string loginName, string loginPasswd);
 bool GetbackPasswd(string userEmail, string newp);
-bool SaveInfo(string regName, string regEmail, string regPasswd, string port);
+bool SaveInfo(string regName, string regEmail, string regPasswd);
+void UpdateUserList(std::vector<UserList> &ul);
 
 
 #endif // LOGIN_H

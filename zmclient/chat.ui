@@ -6,75 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>918</width>
-    <height>652</height>
+    <width>247</width>
+    <height>596</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Chat</string>
   </property>
-  <widget class="QWidget" name="verticalLayoutWidget_2">
-   <property name="geometry">
-    <rect>
-     <x>339</x>
-     <y>69</y>
-     <width>551</width>
-     <height>321</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
-    <item>
-     <widget class="QTextEdit" name="msg"/>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>410</y>
-     <width>54</width>
-     <height>12</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string> 输 入 框</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="verticalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>340</x>
-     <y>430</y>
-     <width>551</width>
-     <height>101</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QTextEdit" name="input"/>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>570</x>
-     <y>50</y>
-     <width>54</width>
-     <height>12</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string> 对 话 框</string>
-   </property>
-  </widget>
   <widget class="QWidget" name="verticalLayoutWidget_4">
    <property name="geometry">
     <rect>
      <x>19</x>
      <y>39</y>
-     <width>281</width>
+     <width>211</width>
      <height>31</height>
     </rect>
    </property>
@@ -91,97 +35,13 @@
     </item>
    </layout>
   </widget>
-  <widget class="QPushButton" name="sendmsg">
-   <property name="geometry">
-    <rect>
-     <x>810</x>
-     <y>540</y>
-     <width>80</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>发 送</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="sendfile">
-   <property name="geometry">
-    <rect>
-     <x>340</x>
-     <y>610</y>
-     <width>79</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>发 送 文 件</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="showfilename">
-   <property name="geometry">
-    <rect>
-     <x>430</x>
-     <y>570</y>
-     <width>451</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="choosefile">
-   <property name="geometry">
-    <rect>
-     <x>340</x>
-     <y>570</y>
-     <width>80</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>选 择 文 件</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>70</y>
-     <width>281</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
-    <item>
-     <widget class="QLabel" name="label_5">
-      <property name="text">
-       <string>列 表 好 友</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>是 否 在 线</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
   <widget class="QWidget" name="horizontalLayoutWidget_2">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>110</y>
-     <width>131</width>
-     <height>501</height>
+     <y>120</y>
+     <width>211</width>
+     <height>461</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -189,37 +49,6 @@
      <widget class="QListWidget" name="friendsList"/>
     </item>
    </layout>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_3">
-   <property name="geometry">
-    <rect>
-     <x>160</x>
-     <y>110</y>
-     <width>141</width>
-     <height>501</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_3">
-    <item>
-     <widget class="QListWidget" name="isOnlineList"/>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QLabel" name="sendto">
-   <property name="geometry">
-    <rect>
-     <x>750</x>
-     <y>46</y>
-     <width>131</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-   </property>
   </widget>
   <widget class="QLabel" name="userName">
    <property name="geometry">
@@ -232,6 +61,19 @@
    </property>
    <property name="text">
     <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="updateList">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>90</y>
+     <width>80</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>更 新 列 表</string>
    </property>
   </widget>
  </widget>

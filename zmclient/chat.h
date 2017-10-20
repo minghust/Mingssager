@@ -2,18 +2,14 @@
 #define CHAT_H
 
 #include <QWidget>
-#include <QTextTableFormat>
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QString>
-#include <QFile>
-#include <QFileDialog>
 #include <string>
 #include <vector>
-#include <QTextCursor>
-#include <QTextTable>
 #include <QTimer>
-#include <QScrollBar>
+#include <QListWidgetItem>
+#include <cstdlib>
 
 namespace Ui {
 class Chat;
@@ -27,22 +23,19 @@ public:
     bool is_open;
     explicit Chat(QWidget *parent = 0);
     void ShowUserList(std::string str);
+    void startThread();
     ~Chat();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
-
-    void on_sendfile_clicked();
-
-    void on_sendmsg_clicked();
-
-    void on_choosefile_clicked();
+    void handleResults();
+    void chooseItem(QListWidgetItem *item);
+    void on_updateList_clicked();
 
 private:
     Ui::Chat *ui;
-    QTextTableFormat tableFormat;
 };
 
 #endif // CHAT_H

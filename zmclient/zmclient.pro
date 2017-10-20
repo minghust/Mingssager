@@ -32,7 +32,8 @@ SOURCES += \
     chat.cpp \
     sendtoserver.cpp \
     receivefile.cpp \
-    server.cpp
+    server.cpp \
+    dlog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -43,11 +44,13 @@ HEADERS += \
     sendtoserver.h \
     receivefile.h \
     server.h \
-    updatethread.h
+    updatethread.h \
+    dlog.h
 
 FORMS += \
         mainwindow.ui \
     register.ui \
     getpasswdback.ui \
     chat.ui \
-    receivefile.ui
+    receivefile.ui \
+    dlog.ui

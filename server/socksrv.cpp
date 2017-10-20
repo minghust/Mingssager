@@ -147,25 +147,6 @@ void main(int argc, char* argv[])
 			//或是否可以发送数据
 			for (itor = conList.begin(); itor != conList.end(); itor++)
 			{
-				//如果会话SOCKET可以发送数据，
-				//则向客户发送消息
-				//if (FD_ISSET(*itor, &wfds))
-				//{
-				//	//如果发送缓冲区有内容，则发送
-				//	if (strlen(sendBuf) > 0)
-				//	{
-				//		nRC = send(*itor, sendBuf, strlen(sendBuf), 0);
-				//		if (nRC == SOCKET_ERROR)
-				//		{
-				//			//发送数据错误，
-				//			//记录下产生错误的会话SOCKET
-				//			conErrList.insert(conErrList.end(), *itor);
-				//		}
-				//		else//发送数据成功，清空发送缓冲区
-				//			memset(sendBuf, '\0', BUFLEN);
-				//	}
-				//}
-
 				//如果会话SOCKET有数据到来，则接受客户的数据
 				if (FD_ISSET(*itor, &rfds))
 				{
@@ -188,6 +169,7 @@ void main(int argc, char* argv[])
 							cout << "recvBuf" << op[1] << endl;
 							vector<string> v;
 							SplitString(op[1], v, "+");
+							memset(sendBuf, '\0', BUFLEN);
 							int re = VerifyUserLogin(v[0], v[1]);
 							if (re == LOGIN_SUCCESS)
 							{
@@ -200,8 +182,11 @@ void main(int argc, char* argv[])
 								for (int i = 0; i < userList.size(); i++)
 								{
 									if (userList[i].name == v[0])
+									{
 										userList[i].isOnline = true;
-									s += userList[i].name + "+" + v[2] + "+";
+										userList[i].port = v[2];
+									}
+									s += userList[i].name + "+" + userList[i].port + "+";
 									s += userList[i].isOnline ? "true" : "false";
 									s += "!";
 								}
@@ -229,6 +214,7 @@ void main(int argc, char* argv[])
 							vector<string> v;
 							cout << "recvBuf:" << op[1] << endl;
 							SplitString(op[1], v, "+");
+							memset(sendBuf, '\0', BUFLEN);
 							bool re = SaveInfo(v[0], v[1], v[2]);
 							if (re)
 							{
@@ -246,6 +232,7 @@ void main(int argc, char* argv[])
 							cout << "recvBuf" << op[0] << endl;
 							vector<string> v;
 							SplitString(op[1], v, "+");
+							memset(sendBuf, '\0', BUFLEN);
 							bool re = GetbackPasswd(v[0], v[1]);
 							if (re)
 							{
@@ -265,6 +252,7 @@ void main(int argc, char* argv[])
 								if (userList[i].name == op[1])
 								{
 									userList[i].isOnline = false;
+									userList[i].port = "xxxxx";
 								}
 							}
 						}
@@ -274,11 +262,16 @@ void main(int argc, char* argv[])
 							string s = "";
 							vector<string>v;
 							SplitString(op[1], v, "+");
+							memset(sendBuf, '\0', BUFLEN);
 							for (int i = 0; i < userList.size(); i++)
 							{
 								if (userList[i].name == v[0])
+								{
 									userList[i].isOnline = true;
-								s += userList[i].name + "+" + v[1] + "+";
+									userList[i].port = v[1];
+								}
+									
+								s += userList[i].name + "+" + userList[i].port + "+";
 								s += userList[i].isOnline ? "true" : "false";
 								s += "!";
 							}

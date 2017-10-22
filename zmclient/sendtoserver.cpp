@@ -10,6 +10,16 @@ const int MAXPORTNUM = 25000;
 string userList = "";
 string port = "";
 
+typedef struct
+{
+    string fromName;
+    string msg;
+}OfflineMessage;
+
+vector<OfflineMessage>offlinev;
+
+void Split(const string& s, vector<string>& v, const string& c);
+
 int SendtoServer(string str, string option)
 {
     char sendBuf[BUFLEN], recvBuf[BUFLEN];
@@ -40,9 +50,33 @@ int SendtoServer(string str, string option)
         {
             clientsocket->waitForReadyRead();
             clientsocket->read(recvBuf, BUFLEN);
+
+            // recvBuf: name+xxxx+false!name+xxxxx+false!%fromName+msg!fromName+msg!
+            // recvBuf: name+xxxx+false!name+xxxxx+false!%none
+            string recv;
+            vector<string>v;
+            recv = recvBuf;
+            Split(recv, v, "%");
             userList.clear();
-            userList = recvBuf;
-        	return LOGIN_SUCCESS;
+            userList = v[0];
+            if(v[1] == "none")
+            {
+                return LOGIN_SUCCESS;
+            }
+            else
+            {
+                offlinev.clear();
+                vector<string>fromName_msg;
+                Split(v[1], fromName_msg, "!");
+                for(auto it = fromName_msg.begin(); it!=fromName_msg.end(); it++)
+                {
+                    vector<string>e;
+                    Split(*it, e, "+");
+                    OfflineMessage tmp = { e[0], e[1] };
+                    offlinev.push_back(tmp);
+                }
+                return LOGIN_SUCCESS;
+            }
         }
         else if(strcmp(recvBuf, "INVALID_USERNAME") == 0)
         {
@@ -106,4 +140,20 @@ void GeneratePort()
     std::stringstream ss;
     ss << randomport;
     ss >> port;
+}
+
+void Split(const string& s, vector<string>& v, const string& c)
+{
+    string::size_type pos1, pos2;
+    pos2 = s.find(c);
+    pos1 = 0;
+    while (string::npos != pos2)
+    {
+        v.push_back(s.substr(pos1, pos2 - pos1));
+
+        pos1 = pos2 + c.size();
+        pos2 = s.find(c, pos1);
+    }
+    if (pos1 != s.length())
+        v.push_back(s.substr(pos1));
 }

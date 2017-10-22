@@ -22,6 +22,13 @@ typedef struct
 	bool isOnline;
 }UserList;
 
+typedef struct
+{
+	string fromName;
+	string toName;
+	string msg;
+}OfflineMessage;
+
 void SplitString(const string& s, std::vector<string>& v, const string& c);
 int VerifyUserLogin(string loginName, string loginPasswd);
 bool GetbackPasswd(string userEmail, string newp);

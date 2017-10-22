@@ -3,10 +3,12 @@
 #include "dlog.h"
 #include "updatethread.h"
 #include <QTcpSocket>
+#include <QMessageBox>
+
 using std::string;
 using std::vector;
 
-const int BUFLEN = 255;
+const int BUFLEN = 500;
 
 typedef struct
 {
@@ -15,12 +17,19 @@ typedef struct
     string isOnline;
 }Record;
 
+typedef struct
+{
+    string fromName;
+    string msg;
+}OfflineMessage;
+
 Record fri = {"", "", ""};
 
 // One record format: "<name>+<addr_port>+<isOnline>!"
 extern string userList;
 extern string name;
 extern string port;
+extern vector<OfflineMessage>offlinev;
 
 void SplitString(const string& s, vector<string>& v, const string& c);
 
@@ -32,6 +41,15 @@ Chat::Chat(QWidget *parent) : QWidget(parent), ui(new Ui::Chat)
     //    startThread();
     // double click to get user to chat with
     connect(ui->friendsList, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(chooseItem(QListWidgetItem *)));
+    if(!offlinev.empty())
+    {
+        string frname="";
+        for(auto it = offlinev.begin(); it!=offlinev.end(); it++)
+        {
+            frname = frname + it->fromName+", ";
+        }
+        QMessageBox::information(this, QString::fromLocal8Bit("有下列好友发来离线消息"), QString::fromStdString(frname));
+    }
 }
 
 Chat::~Chat()
@@ -165,7 +183,7 @@ void Chat::on_updateList_clicked()
     userList = recvBuf;
 
     clientsocket->disconnectFromHost();
-    clientsocket->waitForDisconnected();
+//    clientsocket->waitForDisconnected();
 
     ShowUserList(userList);
 }

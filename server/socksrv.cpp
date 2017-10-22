@@ -12,13 +12,14 @@
 
 using namespace std;
 const int MAXCONN = 5;
-const int BUFLEN = 255;
+const int BUFLEN = 500;
 const string LOGIN = "login";
 const string REGISTER = "register";
 const string GETPASSWDBACK = "getpasswdback";
 const string GETUSERLIST = "getuserlist";
 const string OFFLINE = "offline";
 const string UPDATE = "update";
+const string MESSAGE = "message";
 
 typedef list<SOCKET> ListCONN;
 typedef list<SOCKET> ListConErr;
@@ -39,7 +40,7 @@ void main(int argc, char* argv[])
 	u_long uNonBlock;
 
 	vector<UserList>userList;
-	map<string, string>offlineBuf; // offline message
+	vector<OfflineMessage>offlineBuf;
 	//³õÊ¼»¯ winsock
 	nRC = WSAStartup(0x0101, &wsaData);
 	if (nRC)
@@ -175,7 +176,6 @@ void main(int argc, char* argv[])
 							{
 								sprintf(sendBuf, "%s", "LOGIN_SUCCESS");
 								send(*itor, sendBuf, strlen(sendBuf), 0);
-								
 								// send to client userList
 								UpdateUserList(userList);
 								string s = "";
@@ -187,10 +187,30 @@ void main(int argc, char* argv[])
 										userList[i].port = v[2];
 									}
 									s += userList[i].name + "+" + userList[i].port + "+";
-									s += userList[i].isOnline ? "true" : "false";
-									s += "!";
+									s += userList[i].isOnline ? "true!" : "false!";
 								}
-								sprintf(sendBuf, "%s", s.c_str());
+								s += "%";
+								string t = s;
+								for (auto it = offlineBuf.begin(); it != offlineBuf.end();)
+								{
+									if (it->toName == v[0])
+									{
+										s += it->fromName;
+										s = s + "+" + it->msg + "!";
+										it = offlineBuf.erase(it);
+									}
+									else
+									{
+										it++;
+									}
+								}
+								if (s.length() == t.length())
+								{
+									s += "none";
+								}
+								memcpy(sendBuf, s.c_str(), s.length() + 1);
+								//sprintf(sendBuf, "%s", s.c_str());
+								// sendBuf: name+xxxx+false!name+xxxxx+false!%fromName+msg!fromName+msg
 								send(*itor, sendBuf, strlen(sendBuf), 0);
 							}
 							else if (re == PSW_ERROR)
@@ -270,13 +290,19 @@ void main(int argc, char* argv[])
 									userList[i].isOnline = true;
 									userList[i].port = v[1];
 								}
-									
 								s += userList[i].name + "+" + userList[i].port + "+";
 								s += userList[i].isOnline ? "true" : "false";
 								s += "!";
 							}
 							sprintf(sendBuf, "%s", s.c_str());
 							send(*itor, sendBuf, strlen(sendBuf), 0);
+						}
+						else if (op[0] == MESSAGE)
+						{
+							vector<string>v;
+							SplitString(op[1], v, "+");
+							OfflineMessage tmp = { v[0], v[1], v[2]};
+							offlineBuf.push_back(tmp);
 						}
 					}
 				}

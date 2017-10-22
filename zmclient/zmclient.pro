@@ -32,7 +32,6 @@ SOURCES += \
     chat.cpp \
     sendtoserver.cpp \
     receivefile.cpp \
-    server.cpp \
     dlog.cpp
 
 HEADERS += \
@@ -40,10 +39,8 @@ HEADERS += \
     register.h \
     getpasswdback.h \
     chat.h \
-    clientstart.h \
     sendtoserver.h \
     receivefile.h \
-    server.h \
     updatethread.h \
     dlog.h
 

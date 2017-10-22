@@ -8,6 +8,7 @@
 #include <ctime>
 
 using std::string;
+using std::vector;
 
 const int LOGIN_SUCCESS = 1;
 const int REGISTER_SUCCESS = 1;
@@ -17,7 +18,7 @@ const int REGISTER_FAILURE = 0;
 const int GETPASSWDBACK_FAILURE = 0;
 const int INVALID_USERNAME = -1;
 const int PSW_ERROR = -2;
-const int BUFLEN = 255;
+const int BUFLEN = 500;
 
 int SendtoServer(string str, string option);
 void GeneratePort();

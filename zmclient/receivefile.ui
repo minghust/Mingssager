@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>428</width>
-    <height>309</height>
+    <width>493</width>
+    <height>308</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,11 +16,14 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>240</y>
+     <x>140</x>
+     <y>230</y>
      <width>341</width>
      <height>32</height>
     </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -33,9 +36,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>50</y>
-     <width>371</width>
-     <height>171</height>
+     <y>40</y>
+     <width>471</width>
+     <height>181</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -50,14 +53,57 @@
      </widget>
     </item>
     <item>
-     <widget class="QLabel" name="filename">
-      <property name="text">
-       <string/>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>发 送 者</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>文 件 名</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>文 件 大 小</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="fromName"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="fileName"/>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="fileSize"/>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="storePos"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QPushButton" name="store">
+        <property name="text">
+         <string>存 储 位 置</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QLabel" name="label_3">
@@ -70,6 +116,19 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QProgressBar" name="progressBar">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>270</y>
+     <width>471</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="value">
+    <number>0</number>
+   </property>
   </widget>
  </widget>
  <resources/>

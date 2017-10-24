@@ -1,10 +1,7 @@
 #include "dlog.h"
 #include "ui_dlog.h"
+#include "receivefile.h"
 
-#include <ctime>
-#include <sstream>
-const int MINUDPPORTNUM = 30000;
-const int MAXUDPPORTNUM = 35000;
 const int BUFLEN = 500;
 typedef struct
 {
@@ -26,16 +23,15 @@ typedef struct
     string fileSize;
     string fileName;
 }RFInfo; // receive file info
-RFInfo rfInfo = {"", "", "", ""};
 
 extern string name;
 extern string port;
 extern Record fri;
 extern vector<OfflineMessage>offlinev;
 
-string udpPort = "";
+RFInfo rfInfo = {"", "", "", ""};
 void SplitStr(const string& s, vector<string>& v, const string& c);
-void GenerateUdpPort();
+
 Dlog::Dlog(QWidget *parent) : QWidget(parent), ui(new Ui::Dlog)
 {
     ui->setupUi(this);
@@ -47,14 +43,12 @@ Dlog::Dlog(QWidget *parent) : QWidget(parent), ui(new Ui::Dlog)
     ui->sendto->setText("To: "+QString::fromStdString(fri.name));
     ui->progressBar->hide();
     sendLength = 0;
-
+    isHead = true;
     clientsocket = new QTcpSocket(this);
     serversocket = new QTcpServer(this);
     clientUdpSocket = new QUdpSocket(this);
     ServerUdpSocket = new QUdpSocket(this);
     serverResSocket = new QTcpSocket(this);
-
-    GenerateUdpPort();
 
     if(!offlinev.empty())
     {
@@ -66,13 +60,12 @@ Dlog::Dlog(QWidget *parent) : QWidget(parent), ui(new Ui::Dlog)
 
     // send by client, recv by server
     connect(serversocket, SIGNAL(newConnection()),this, SLOT(AcceptConnect()));
+    // an error occurred
+    connect(serversocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(close()));
+
     NewListen();
     ServerUdpSocket->bind(QHostAddress::LocalHost, (quint16)atoi(port.c_str()));
     connect(ServerUdpSocket, SIGNAL(readyRead()), this, SLOT(ServerReadDatagram()));
-
-    clientUdpSocket->bind(QHostAddress::LocalHost, (quint16)atoi(udpPort.c_str())); // client need to listen the server's redpond
-    connect(clientUdpSocket, SIGNAL(readyRead()), this, SLOT(ClientReadDatagram()));
-
 }
 
 Dlog::~Dlog()
@@ -83,7 +76,6 @@ Dlog::~Dlog()
     delete clientUdpSocket;
     delete serverResSocket;
     delete ServerUdpSocket;
-    delete recv;
 }
 
 
@@ -93,7 +85,7 @@ void Dlog::on_sendmsg_clicked()
     QString str = ui->input->toPlainText();
     if(str.isEmpty())
     {
-        QMessageBox::information(this, QString::fromLocal8Bit("´íÎó"), QString::fromLocal8Bit("ÊäÈë²»ÄÜÎª¿Õ£¡"));
+        QMessageBox::information(this, QString::fromLocal8Bit("Â´Ã­ÃŽÃ³"), QString::fromLocal8Bit("ÃŠÃ¤ÃˆÃ«Â²Â»Ã„ÃœÃŽÂªÂ¿Ã•Â£Â¡"));
         return;
     }
     else
@@ -165,7 +157,7 @@ void Dlog::ServerReceiveMsg()
     AppendMessage(v2[0], v2[2]); // fromName and context
 }
 
-////////////// client send file ///////////////
+//////////// client send file ///////////////
 void Dlog::on_choosefile_clicked()
 {
     ui->showfilename->clear();
@@ -177,27 +169,30 @@ void Dlog::on_choosefile_clicked()
 
 void Dlog::on_sendfile_clicked()
 {
+    ui->progressBar->show();
     isHead = true;
     QString filePath = ui->showfilename->text();
     if(filePath.isEmpty())
     {
-        QMessageBox::information(this, QString::fromLocal8Bit("´íÎó"), QString::fromLocal8Bit("ÇëÑ¡ÔñÎÄ¼þ£¡"));
+        QMessageBox::information(this, QString::fromLocal8Bit("Â´Ã­ÃŽÃ³"), QString::fromLocal8Bit("Ã‡Ã«Ã‘Â¡Ã”Ã±ÃŽÃ„Â¼Ã¾Â£Â¡"));
         return;
     }
     else
     {
-        ui->progressBar->show();
         file = new QFile(filePath);
 
-        bool isOpen = file->open(QIODevice::ReadOnly);
+        bool isOpen = file->open(QIODevice::Readonly);
         if(!isOpen)
         {
-            QMessageBox::information(this, QString::fromLocal8Bit("´íÎó"), QString::fromLocal8Bit("ÎÞ´ËÎÄ¼þ£¡"));
+            QMessageBox::information(this, QString::fromLocal8Bit("Â´Ã­ÃŽÃ³"), QString::fromLocal8Bit("ÃŽÃžÂ´Ã‹ÃŽÃ„Â¼Ã¾Â£Â¡"));
             return;
         }
         else
         {
             ui->sendfile->setDisabled(true);
+            ServerUdpSocket->close();
+            clientUdpSocket->bind("127.0.0.1", port); // client need to listen the server's redpond
+            connect(clientUdpSocket, SIGNAL(readyRead()), this, SLOT(ClientReadDatagram()));
             ClientSendDatagram(fri.addr); // just send file head
         }
     }
@@ -233,11 +228,8 @@ void Dlog::ClientSendDatagram(const string &targetPort)
     {
         QString filePath = ui->showfilename->text();
         QFileInfo *fileInfo = new QFileInfo(filePath);
-
-        QString fileHeadMsg = QString::fromStdString(name) + "?" + QString::fromStdString(udpPort) + "?" +
-                        fileInfo->fileName() + "?" + QString::number(fileInfo->size());
-        // the target port is shared with TCP port
-        clientUdpSocket->writeDatagram(fileHeadMsg.toStdString().c_str(), QHostAddress::LocalHost, (quint16)atoi(targetPort.c_str()));
+        QByteArray fileHeadMsg = name + "?" + port + "?" + fileInfo->fileName() + "?" + QString::number(fileInfo->size());
+        clientUdpSocket->writeDatagram(fileHeadMsg.toUtf8(),QHostAddress("127.0.0.1"), targetPort);
         isHead = false;
     }
     else
@@ -246,7 +238,7 @@ void Dlog::ClientSendDatagram(const string &targetPort)
         {
             QByteArray msg;
             msg = file->read(512);
-            int length = clientUdpSocket->writeDatagram(msg.data(), QHostAddress::LocalHost, (quint16)atoi(targetPort.c_str()));
+            int length = clientUdpSocket->writeDatagram( msg, QHostAddress("127.0.0.1"), targetPort);
             sendLength += length;
             ui->progressBar->setValue(sendLength);
             qDebug() << QString::number(length);
@@ -254,49 +246,38 @@ void Dlog::ClientSendDatagram(const string &targetPort)
         else
         {
             ui->sendfile->setEnabled(true);
-            clientUdpSocket->writeDatagram( "OVER", 4, QHostAddress::LocalHost, (quint16)atoi(targetPort.c_str()));
-            QMessageBox::information(this, QString::fromLocal8Bit("Íê³É"), QString::fromLocal8Bit("ÎÄ¼þ´«Êä³É¹¦£¡"));
+            clientUdpSocket->writeDatagram( "OVER", 4, QHostAddress("127.0.0.1"), targetPort);
+            QMessageBox::information(this, QString::fromLocal8Bit("ÃÃªÂ³Ã‰"), QString::fromLocal8Bit("ÃŽÃ„Â¼Ã¾Â´Â«ÃŠÃ¤Â³Ã‰Â¹Â¦Â£Â¡"));
             sendLength = 0;
             ui->progressBar->hide();
             file->close();
-            clientUdpSocket->close();
+            clientsocket->close();
+            ServerUdpSocket->bind("127.0.0.1", port); // reBind self-port for listen other's file transmission
             delete file;
             return;
         }
     }
 }
 
-////////////// server receive file ///////////////
+//////////// server receive file ///////////////
 void Dlog::ServerReadDatagram()
 {
-    while(ServerUdpSocket->hasPendingDatagrams())
-    {
-        QByteArray datagram;
-        QHostAddress nullhost;
-        quint16 nullport;
-        datagram.resize(ServerUdpSocket->pendingDatagramSize());
-        ServerUdpSocket->readDatagram(datagram.data(), datagram.size(), &nullhost, &nullport);
-        ServerUdpSocket->close();
-        QString s = datagram.data();
-        string str = s.toStdString();
-        vector<string>v;
-        SplitStr(str, v, "?");
-        // v[0] fromName, v[1]: fromPort, v[2]: fileName, v[3] fileSize
-        rfInfo.fromName = v[0];
-        rfInfo.fromPort = v[1];
-        rfInfo.fileName = v[2];
-        rfInfo.fileSize = v[3];
-        recv = new ReceiveFile();
-        recv->show();
-        connect(recv, SIGNAL(DialogClose()), this, SLOT(FileReceiveWindowClose()));
-    }
+    ReceiveFile *recvFile = new ReceiveFile();
+    recvFile->show();
+
+//    QByteArray datagram;
+//    QHostAddress nullhost;
+//    qunit16 nullport;
+//    ServerUdpSocket->readDatagram(datagram.data(), datagram.size(), &nullhost, &nullport);
+//    QString s = datagram.data();
+//    string str = s.toStdString();
+//    vector<string>v;
+//    SplitStr(str, v, "?");
+
 }
 
-void Dlog::FileReceiveWindowClose()
-{
-    ServerUdpSocket->bind(QHostAddress::LocalHost, (quint16)atoi(port.c_str()));
-    connect(ServerUdpSocket, SIGNAL(readyRead()), this, SLOT(ServerReadDatagram()));
-}
+
+
 ///////// adding functions //////////
 
 void Dlog::AppendMessage(const string & nm, const string &message)
@@ -306,7 +287,7 @@ void Dlog::AppendMessage(const string & nm, const string &message)
     cursor.movePosition(QTextCursor::End);
     QTextTable *table = cursor.insertTable(1, 2, tableFormat);
     table->cellAt(0, 0).firstCursorPosition().insertText("<127.0.0.1>");
-    table->cellAt(0, 1).firstCursorPosition().insertText(QString::fromStdString(nm) + ": " + QString::fromStdString(message) + '\n');
+    table->cellAt(0, 1).firstCursorPosition().insertText(QString::fromStdString(nm) + "said: " + QString::fromStdString(message) + '\n');
     QScrollBar *bar = ui->msg->verticalScrollBar();
     bar->setValue(bar->maximum());
 }
@@ -325,13 +306,4 @@ void SplitStr(const string& s, vector<string>& v, const string& c)
     }
     if (pos1 != s.length())
         v.push_back(s.substr(pos1));
-}
-
-void GenerateUdpPort()
-{
-    srand((unsigned)time(0));
-    int randomport = rand() % (MAXUDPPORTNUM - MINUDPPORTNUM + 1) + MINUDPPORTNUM;
-    std::stringstream ss;
-    ss << randomport;
-    ss >> udpPort;
 }

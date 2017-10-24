@@ -10,8 +10,8 @@ typedef struct
     string fileName;
 }RFInfo; // receive file info
 
-RFInfo rfInfo;
-
+extern RFInfo rfInfo;
+extern string port;
 ReceiveFile::ReceiveFile(QWidget *parent) : QDialog(parent), ui(new Ui::ReceiveFile)
 {
     ui->setupUi(this);
@@ -19,40 +19,28 @@ ReceiveFile::ReceiveFile(QWidget *parent) : QDialog(parent), ui(new Ui::ReceiveF
     ui->fromName->setReadOnly(true);
     ui->fileSize->setReadOnly(true);
     ui->storePos->setReadOnly(true);
-    Initial();
-}
 
-void ReceiveFile::Initial()
-{
     ui->fileName->clear();
     ui->fromName->clear();
     ui->fileSize->clear();
     ui->storePos->clear();
-    fromPort = "";
-    QByteArray datagram;
-    QHostAddress nullhost;
-    qunit16 nullport;
-    Dlog::ServerUdpSocket->readDatagram(datagram.data(), datagram.size(), &nullhost, &nullport);
-    QString s = datagram.data();
-    string str = s.toStdString();
-    vector<string>v;
-    SplitStr(str, v, "?");
-    // v[0] fromName, v[1]: fromPort, v[2]: fileName, v[3] fileSize
-    ui->filename = "from: "+ QString::fromStdString(v[1]) + '\n' + "fileName:" + QString::fromStdString(v[2]) + "\fileSsize: " + QString::fromStdString(v[1]);
-    rfInfo.fromName = v[0];
-    rfInfo.fromPort = v[1];
-    rfInfo.fileName = v[2];
-    rfInfo.fileSize = v[3];
+    ui->progressBar->hide();
+    recvLength = 0;
 
-    fDialog = new QFileDialog(this);
-    fDialog->setFileMode(QFileDialog::Directory);
+    ui->fromName->setText(QString::fromStdString(rfInfo.fromName));
+    ui->fileName->setText(QString::fromStdString(rfInfo.fileName));
+    ui->fileSize->setText(QString::fromStdString(rfInfo.fileSize));
 
-
+    udpsocket = new QUdpSocket(this);
+    udpsocket->bind(QHostAddress::LocalHost, quint16(atoi(port.c_str())));
+    connect(udpsocket, SIGNAL(readyRead()), this, SLOT(ServerReceiveFile));
 }
 
 ReceiveFile::~ReceiveFile()
 {
     delete ui;
+    delete fDialog;
+    delete udpsocket;
 }
 
 void ReceiveFile::on_buttonBox_accepted()
@@ -62,9 +50,8 @@ void ReceiveFile::on_buttonBox_accepted()
         QMessageBox::warning(this, "PATH", "the path is NULL");
         return;
     }
-    Dlog::ServerUdpSocket->writeDatagram("OK", 2, "127.0.0.1", rfInfo.fromPort);
-
-    connect(ServerUdpSocket, SIGNAL(readyRead()),this, SLOT(ServerReceiveFile()));
+    // send an "OK" to respond has received the fileHeadInfo and agree to receive file.
+    udpsocket->writeDatagram("OK", 2, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
     file.setFileName(ui->storePos->text());
     if(!file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Unbuffered))
     {
@@ -75,54 +62,47 @@ void ReceiveFile::on_buttonBox_accepted()
 
 void ReceiveFile::ServerReceiveFile()
 {
-    while(udpSocket->hasPendingDatagrams())
+    while(udpsocket->hasPendingDatagrams())
     {
         QByteArray datagram;
         QHostAddress host;
         quint16 port;
-        datagram.resize(udpSocket->pendingDatagramSize());
-        int length = udpSocket->readDatagram(datagram.data(), datagram.size(), &host, &port);
+        datagram.resize(udpsocket->pendingDatagramSize());
+        int length = udpsocket->readDatagram(datagram.data(), datagram.size(), &host, &port);
 
-        if(isFileHead){
-            QStringList msgs = QString(datagram).split("##");
-            qDebug() << msgs;
-            if(msgs.count() != 2){
-                QMessageBox::warning(this, "Error", "Receive FileHead error");
-            }
-            QString fileLength = msgs.at(1);
-            int fileSize = fileLength.toInt();
-            ui->progressBar->setMaximum(fileSize);
-            isFileHead = false;
-            udpSocket->writeDatagram("OK", 2, host, 7754);
-            continue;
-        }
-        if(datagram == "OVER"){
+        if(datagram == "OVER")
+        {
+            recvLength = 0;
+            ui->progressBar->hide();
             QMessageBox::information(this, "success", "Recieve File Success");
-            ui->pushButton_recv->setEnabled(true);
+            emit DialogClose();
+            this->close();
             return;
         }
-        recvCnt += length;
-        ui->progressBar->setValue(recvCnt);
-        file.write(datagram.data(),datagram.size());
-        udpSocket->writeDatagram("OK", 2, host, 7754);
-        ui->listWidget->addItem(QString(datagram));
-         ui->listWidget->scrollToBottom();
-      //  qDebug() << datagram << " " << host.toString() << QString::number(port);
+        recvLength += length;
+        ui->progressBar->setValue(recvLength);
+        file.write(datagram.data(), datagram.size());
+        udpsocket->writeDatagram("OK", 2, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
     }
 }
 
 void ReceiveFile::on_buttonBox_rejected()
 {
-    Dlog::ServerUdpSocket->writeDatagram("REJECT", 6, "127.0.0.1", rfInfo.fromPort);
+    udpsocket->writeDatagram("REJECT", 6, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
+    emit DialogClose();
+    this->close();
     return;
 }
 
 void ReceiveFile::on_store_clicked()
 {
-    QString dpath = QFileDialog::getOpenFileName(this);
-    QString path = dpath+"\\"+QString::fromStdString(rfInfo.fileName);
-    ui->storePos->setText(path);
-    QFileInfo fileInfo = QFileInfo(path);
-
+    fDialog = new QFileDialog(this);
+    fDialog->setFileMode(QFileDialog::Directory);
+    fDialog->show();
+    connect(fDialog,SIGNAL(fileSelected ( const QString & )),this,SLOT(SetFileName(const QString & )));
 }
 
+void ReceiveFile::SetFileName(const QString & dpath)
+{
+    ui->storePos->setText(dpath+"/"+QString::fromStdString(rfInfo.fileName));
+}

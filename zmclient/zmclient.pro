@@ -41,8 +41,8 @@ HEADERS += \
     chat.h \
     sendtoserver.h \
     receivefile.h \
-    updatethread.h \
-    dlog.h
+    dlog.h \
+    updatethread.h
 
 FORMS += \
         mainwindow.ui \

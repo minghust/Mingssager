@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
-
+#include "receivefile.h"
 using std::vector;
 using std::string;
 
@@ -47,12 +47,13 @@ public:
 
 private slots:
     void on_sendmsg_clicked();
-    void AcceptConnect();    
+    void AcceptConnect();
     void ServerReceiveMsg();
-
+    void ServerReadDatagram(); // to delete
     void ClientReadDatagram();
     void on_choosefile_clicked();
     void on_sendfile_clicked();
+    void FileReceiveWindowClose();
 
 
 private:
@@ -65,6 +66,7 @@ private:
     bool isHead;
     QFile *file;
     int sendLength;
+    ReceiveFile * recv;
 };
 
 #endif // DLOG_H

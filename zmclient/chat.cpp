@@ -1,7 +1,7 @@
 #include "chat.h"
 #include "ui_chat.h"
-#include "dlog.h"
 #include "updatethread.h"
+#include "dlog.h"
 #include <QTcpSocket>
 #include <QMessageBox>
 
@@ -82,7 +82,7 @@ void Chat::closeEvent(QCloseEvent *event)
     clientsocket->waitForBytesWritten();
 
     clientsocket->disconnectFromHost();
-    clientsocket->waitForDisconnected();
+//    clientsocket->waitForDisconnected();
     event->accept();
     return;
 }
@@ -138,7 +138,7 @@ void Chat::ShowUserList(string str)
     }
     // show recd in ui->friendsList
     ui->friendsList->clear();
-    for(int i=0; i<recd.size(); i++)
+    for(unsigned i=0; i<recd.size(); i++)
     {
         ui->friendsList->addItem(QString::fromStdString(recd[i].name) + " " + QString::fromStdString(recd[i].addr)
                                  + " " + QString::fromStdString(recd[i].isOnline));

@@ -40,7 +40,7 @@ void MainWindow::on_confirm_clicked()
         if(re == LOGIN_SUCCESS) // login success
         {
             // enter in chat
-//            this->hide();
+            this->close();
             Chat *ch = new Chat();
             ch->show();
         }

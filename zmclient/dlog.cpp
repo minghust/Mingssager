@@ -34,6 +34,7 @@ extern Record fri;
 extern vector<OfflineMessage>offlinev;
 
 string udpPort = "";
+string serverPort = "";
 void SplitStr(const string& s, vector<string>& v, const string& c);
 void GenerateUdpPort();
 Dlog::Dlog(QWidget *parent) : QWidget(parent), ui(new Ui::Dlog)
@@ -67,6 +68,8 @@ Dlog::Dlog(QWidget *parent) : QWidget(parent), ui(new Ui::Dlog)
     // send by client, recv by server
     connect(serversocket, SIGNAL(newConnection()),this, SLOT(AcceptConnect()));
     NewListen();
+
+    // ServerUdpSocket only listen the fileHead
     ServerUdpSocket->bind(QHostAddress::LocalHost, (quint16)atoi(port.c_str()));
     connect(ServerUdpSocket, SIGNAL(readyRead()), this, SLOT(ServerReadDatagram()));
 
@@ -217,12 +220,17 @@ void Dlog::ClientReadDatagram()
         if(datagram == "OK")
         {
             qDebug() << "send ok";
-            ClientSendDatagram(fri.addr);
+            ClientSendDatagram(serverPort);
         }
         else if(datagram == "REJECT")
         {
             qDebug() << "send reject";
             return;
+        }
+        else // recv the server's port
+        {
+            serverPort = datagram.data();
+            ClientSendDatagram(serverPort);
         }
     }
 }
@@ -267,6 +275,8 @@ void Dlog::ClientSendDatagram(const string &targetPort)
 }
 
 ////////////// server receive file ///////////////
+/// \brief Dlog::ServerReadDatagram
+/// Receive the file head information
 void Dlog::ServerReadDatagram()
 {
     while(ServerUdpSocket->hasPendingDatagrams())
@@ -276,7 +286,6 @@ void Dlog::ServerReadDatagram()
         quint16 nullport;
         datagram.resize(ServerUdpSocket->pendingDatagramSize());
         ServerUdpSocket->readDatagram(datagram.data(), datagram.size(), &nullhost, &nullport);
-        ServerUdpSocket->close();
         QString s = datagram.data();
         string str = s.toStdString();
         vector<string>v;
@@ -288,14 +297,7 @@ void Dlog::ServerReadDatagram()
         rfInfo.fileSize = v[3];
         recv = new ReceiveFile();
         recv->show();
-        connect(recv, SIGNAL(DialogClose()), this, SLOT(FileReceiveWindowClose()));
     }
-}
-
-void Dlog::FileReceiveWindowClose()
-{
-    ServerUdpSocket->bind(QHostAddress::LocalHost, (quint16)atoi(port.c_str()));
-    connect(ServerUdpSocket, SIGNAL(readyRead()), this, SLOT(ServerReadDatagram()));
 }
 ///////// adding functions //////////
 

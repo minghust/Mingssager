@@ -1,6 +1,8 @@
 #include "receivefile.h"
 #include "ui_receivefile.h"
 #include "dlog.h"
+#include <ctime>
+#include <sstream>
 
 typedef struct
 {
@@ -11,9 +13,13 @@ typedef struct
 }RFInfo; // receive file info
 
 extern RFInfo rfInfo;
-extern string port;
+string recvPort = "";
+void GeneUdpPort();
+const int MIN = 40000;
+const int MAX = 45000;
 ReceiveFile::ReceiveFile(QWidget *parent) : QDialog(parent), ui(new Ui::ReceiveFile)
 {
+    GeneUdpPort();
     ui->setupUi(this);
     ui->fileName->setReadOnly(true);
     ui->fromName->setReadOnly(true);
@@ -32,8 +38,8 @@ ReceiveFile::ReceiveFile(QWidget *parent) : QDialog(parent), ui(new Ui::ReceiveF
     ui->fileSize->setText(QString::fromStdString(rfInfo.fileSize));
 
     udpsocket = new QUdpSocket(this);
-    udpsocket->bind(QHostAddress::LocalHost, quint16(atoi(port.c_str())));
-    connect(udpsocket, SIGNAL(readyRead()), this, SLOT(ServerReceiveFile));
+    udpsocket->bind(QHostAddress::LocalHost, quint16(atoi(recvPort.c_str())));
+    connect(udpsocket, SIGNAL(readyRead()), this, SLOT(ServerReceiveFile()));
 }
 
 ReceiveFile::~ReceiveFile()
@@ -51,7 +57,7 @@ void ReceiveFile::on_buttonBox_accepted()
         return;
     }
     // send an "OK" to respond has received the fileHeadInfo and agree to receive file.
-    udpsocket->writeDatagram("OK", 2, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
+    udpsocket->writeDatagram(recvPort.c_str(), strlen(recvPort.c_str()) + 1, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
     file.setFileName(ui->storePos->text());
     if(!file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Unbuffered))
     {
@@ -75,7 +81,7 @@ void ReceiveFile::ServerReceiveFile()
             recvLength = 0;
             ui->progressBar->hide();
             QMessageBox::information(this, "success", "Recieve File Success");
-            emit DialogClose();
+            udpsocket->close();
             this->close();
             return;
         }
@@ -89,7 +95,7 @@ void ReceiveFile::ServerReceiveFile()
 void ReceiveFile::on_buttonBox_rejected()
 {
     udpsocket->writeDatagram("REJECT", 6, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
-    emit DialogClose();
+    udpsocket->close();
     this->close();
     return;
 }
@@ -98,6 +104,7 @@ void ReceiveFile::on_store_clicked()
 {
     fDialog = new QFileDialog(this);
     fDialog->setFileMode(QFileDialog::Directory);
+    fDialog->setDirectory("C:\\Users\\ZhangMing\\Desktop\\receive\\");
     fDialog->show();
     connect(fDialog,SIGNAL(fileSelected ( const QString & )),this,SLOT(SetFileName(const QString & )));
 }
@@ -105,4 +112,13 @@ void ReceiveFile::on_store_clicked()
 void ReceiveFile::SetFileName(const QString & dpath)
 {
     ui->storePos->setText(dpath+"/"+QString::fromStdString(rfInfo.fileName));
+}
+
+void GeneUdpPort()
+{
+    srand((unsigned)time(0));
+    int randomport = rand() % (MAX - MIN + 1) + MIN;
+    std::stringstream ss;
+    ss << randomport;
+    ss >> recvPort;
 }

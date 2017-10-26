@@ -53,7 +53,6 @@ private slots:
     void ClientReadDatagram();
     void on_choosefile_clicked();
     void on_sendfile_clicked();
-    void FileReceiveWindowClose();
 
 
 private:

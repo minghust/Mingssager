@@ -26,15 +26,20 @@ typedef struct
     string fileSize;
     string fileName;
 }RFInfo; // receive file info
+
 RFInfo rfInfo = {"", "", "", ""};
 
-extern string name;
-extern string port;
+extern string name; // self name
+extern string port; // self tcp & udp port, used to listen for file's head infomation
 extern Record fri;
 extern vector<OfflineMessage>offlinev;
 
+// self-client's port, send to another client to let him know what port he should send "OK" back
 string udpPort = "";
+
+// another client's port used to be sent datagram
 string serverPort = "";
+
 void SplitStr(const string& s, vector<string>& v, const string& c);
 void GenerateUdpPort();
 Dlog::Dlog(QWidget *parent) : QWidget(parent), ui(new Ui::Dlog)
@@ -156,6 +161,7 @@ void Dlog::AcceptConnect()
     serverResSocket = serversocket->nextPendingConnection();
     connect(serverResSocket,SIGNAL(readyRead()),this, SLOT(ServerReceiveMsg()));
 }
+
 void Dlog::ServerReceiveMsg()
 {
     QByteArray data = serverResSocket->readAll();
@@ -267,7 +273,6 @@ void Dlog::ClientSendDatagram(const string &targetPort)
             sendLength = 0;
             ui->progressBar->hide();
             file->close();
-            clientUdpSocket->close();
             delete file;
             return;
         }

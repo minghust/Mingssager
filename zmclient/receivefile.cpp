@@ -56,9 +56,10 @@ void ReceiveFile::on_buttonBox_accepted()
         QMessageBox::warning(this, "PATH", "the path is NULL");
         return;
     }
-    // send an "OK" to respond has received the fileHeadInfo and agree to receive file.
+    // send receive port to respond has received the fileHeadInfo and agree to receive file body.
     udpsocket->writeDatagram(recvPort.c_str(), strlen(recvPort.c_str()) + 1, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
     file.setFileName(ui->storePos->text());
+    ui->progressBar->show();
     if(!file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Unbuffered))
     {
         QMessageBox::warning(this, "create", "create file error");
@@ -80,7 +81,7 @@ void ReceiveFile::ServerReceiveFile()
         {
             recvLength = 0;
             ui->progressBar->hide();
-            QMessageBox::information(this, "success", "Recieve File Success");
+            QMessageBox::information(this, QString::fromLocal8Bit("成功"), QString::fromLocal8Bit("接收文件成功！"));
             udpsocket->close();
             this->close();
             return;

@@ -46,9 +46,9 @@ Chat::Chat(QWidget *parent) : QWidget(parent), ui(new Ui::Chat)
         string frname="";
         for(auto it = offlinev.begin(); it!=offlinev.end(); it++)
         {
-            frname = frname + it->fromName+", ";
+            frname = frname + it->fromName+" ";
         }
-        QMessageBox::information(this, QString::fromLocal8Bit("有下列好友发来离线消息"), QString::fromStdString(frname));
+        QMessageBox::information(this, QString::fromLocal8Bit("好友的离线消息"), QString::fromStdString(frname));
     }
 }
 

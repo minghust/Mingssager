@@ -3,6 +3,7 @@
 
 #include <ctime>
 #include <sstream>
+#include <QDataStream>
 const int MINUDPPORTNUM = 30000;
 const int MAXUDPPORTNUM = 35000;
 const int BUFLEN = 500;
@@ -69,6 +70,7 @@ Dlog::Dlog(QWidget *parent) : QWidget(parent), ui(new Ui::Dlog)
             AppendMessage(it->fromName, it->msg);
         }
     }
+    offlinev.clear(); // clear offline messages after showing them
 
     // send by client, recv by server
     connect(serversocket, SIGNAL(newConnection()),this, SLOT(AcceptConnect()));
@@ -92,6 +94,7 @@ Dlog::~Dlog()
     delete serverResSocket;
     delete ServerUdpSocket;
     delete recv;
+    qDebug("ui, clientsocket, serversocket, clientudpsocket, serverRessocket, serverudpsocket, recv boom");
 }
 
 
@@ -152,7 +155,7 @@ void Dlog::NewListen()
     }
     else
     {
-        qDebug("listen");
+        qDebug("listen...");
     }
 }
 
@@ -172,6 +175,22 @@ void Dlog::ServerReceiveMsg()
     SplitStr(str, v, "!"); // get rid of "message"
     SplitStr(v[1], v2, "+");
     AppendMessage(v2[0], v2[2]); // fromName and context
+}
+
+void Dlog::closeEvent(QCloseEvent *event)
+{
+    clientsocket->close();
+    serversocket->close();
+    clientUdpSocket->close();
+    serverResSocket->close();
+    ServerUdpSocket->close();
+    delete clientsocket;
+    delete serversocket;
+    delete clientUdpSocket;
+    delete ServerUdpSocket;
+    event->accept();
+    qDebug("delete all Dialog sockets");
+    return;
 }
 
 ////////////// client send file ///////////////
@@ -259,6 +278,9 @@ void Dlog::ClientSendDatagram(const string &targetPort)
         if(!file->atEnd())
         {
             QByteArray msg;
+            /////////////////////////////
+//            QDataStream in(&file);
+//            in.setVersion(QDataStream::Qt_5_9);
             msg = file->read(512);
             int length = clientUdpSocket->writeDatagram(msg.data(), QHostAddress::LocalHost, (quint16)atoi(targetPort.c_str()));
             sendLength += length;
@@ -312,7 +334,7 @@ void Dlog::AppendMessage(const string & nm, const string &message)
     QTextCursor cursor(ui->msg->textCursor());
     cursor.movePosition(QTextCursor::End);
     QTextTable *table = cursor.insertTable(1, 2, tableFormat);
-    table->cellAt(0, 0).firstCursorPosition().insertText("<127.0.0.1>");
+    table->cellAt(0, 0).firstCursorPosition().insertText("From ");
     table->cellAt(0, 1).firstCursorPosition().insertText(QString::fromStdString(nm) + ": " + QString::fromStdString(message) + '\n');
     QScrollBar *bar = ui->msg->verticalScrollBar();
     bar->setValue(bar->maximum());

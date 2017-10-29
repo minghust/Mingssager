@@ -3,6 +3,7 @@
 #include "dlog.h"
 #include <ctime>
 #include <sstream>
+#include <QDataStream>
 
 typedef struct
 {
@@ -88,6 +89,9 @@ void ReceiveFile::ServerReceiveFile()
         }
         recvLength += length;
         ui->progressBar->setValue(recvLength);
+        // QDataStream out(&file);
+        // out.setVersion(QDataStream::Qt_5_9);
+        // out << datagram.data()
         file.write(datagram.data(), datagram.size());
         udpsocket->writeDatagram("OK", 2, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
     }

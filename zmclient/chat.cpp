@@ -1,6 +1,5 @@
 #include "chat.h"
 #include "ui_chat.h"
-#include "updatethread.h"
 #include "dlog.h"
 #include <QTcpSocket>
 #include <QMessageBox>
@@ -38,7 +37,6 @@ Chat::Chat(QWidget *parent) : QWidget(parent), ui(new Ui::Chat)
     ui->setupUi(this);
     ui->userName->setText(QString::fromStdString(name));
     ShowUserList(userList);
-    //    startThread();
     // double click to get user to chat with
     connect(ui->friendsList, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(chooseItem(QListWidgetItem *)));
     if(!offlinev.empty())
@@ -82,44 +80,8 @@ void Chat::closeEvent(QCloseEvent *event)
     clientsocket->waitForBytesWritten();
 
     clientsocket->disconnectFromHost();
-//    clientsocket->waitForDisconnected();
     event->accept();
     return;
-}
-
-// start thread
-void Chat::startThread()
-{
-    WorkerThread *workerThread = new WorkerThread(this);
-    connect(workerThread, SIGNAL(resultReady()), this, SLOT(handleResults()));
-    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
-    workerThread->start();
-}
-
-// update userList
-void Chat::handleResults()
-{
-    QTcpSocket *clientsocket = new QTcpSocket(this);
-    clientsocket->connectToHost("127.0.0.1", 5050);
-    clientsocket->waitForConnected();
-    char recvBuf[BUFLEN];
-    char sendBuf[BUFLEN];
-    string s = "update!" + name + "+" + port;
-
-    clientsocket->write(sendBuf, strlen(sendBuf)+1);
-    clientsocket->waitForBytesWritten();
-
-    // receive userlist
-    clientsocket->waitForReadyRead();
-    clientsocket->read(recvBuf, BUFLEN);
-
-    userList.clear();
-    userList = recvBuf;
-
-    clientsocket->disconnectFromHost();
-    clientsocket->waitForDisconnected();
-
-    ShowUserList(userList);
 }
 
 void Chat::ShowUserList(string str)

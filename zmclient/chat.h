@@ -23,14 +23,12 @@ public:
     bool is_open;
     explicit Chat(QWidget *parent = 0);
     void ShowUserList(std::string str);
-    void startThread();
     ~Chat();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
-    void handleResults();
     void chooseItem(QListWidgetItem *item);
     void on_updateList_clicked();
 

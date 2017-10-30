@@ -12,6 +12,7 @@
 #include <string>
 #include <QMessageBox>
 #include <QHostAddress>
+#include <QDataStream>
 
 #include <cstdlib> // atoi()
 namespace Ui {
@@ -24,8 +25,6 @@ class ReceiveFile : public QDialog
 
 public:
     explicit ReceiveFile(QWidget *parent = 0);
-
-    QFile file;
     ~ReceiveFile();
 
 private slots:
@@ -40,6 +39,8 @@ private:
     QFileDialog *fDialog;
     int recvLength;
     QUdpSocket *udpsocket;
+    QFile file;
+    QDataStream *out;
 };
 
 #endif // RECEIVEFILE_H

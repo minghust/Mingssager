@@ -20,6 +20,7 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QFileDialog>
+#include <QDataStream>
 
 #include <string>
 #include <vector>
@@ -68,6 +69,7 @@ private:
     QFile *file;
     int sendLength;
     ReceiveFile * recv;
+    QDataStream *in;
 };
 
 #endif // DLOG_H

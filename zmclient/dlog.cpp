@@ -3,10 +3,14 @@
 
 #include <ctime>
 #include <sstream>
-#include <QDataStream>
+#include "md5_encode.h"
+
 const int MINUDPPORTNUM = 30000;
 const int MAXUDPPORTNUM = 35000;
 const int BUFLEN = 500;
+const int DATASIZE = 1500;
+bool isError;
+QByteArray buf;
 typedef struct
 {
     string name;
@@ -52,7 +56,7 @@ Dlog::Dlog(QWidget *parent) : QWidget(parent), ui(new Ui::Dlog)
     ui->userName->setText("From: " + QString::fromStdString(name));
     ui->sendto->clear();
     ui->sendto->setText("To: "+QString::fromStdString(fri.name));
-    ui->progressBar->hide();
+//    ui->progressBar->hide();
     sendLength = 0;
 
     clientsocket = new QTcpSocket(this);
@@ -214,9 +218,8 @@ void Dlog::on_sendfile_clicked()
     }
     else
     {
-        ui->progressBar->show();
+//        ui->progressBar->show();
         file = new QFile(filePath);
-
         bool isOpen = file->open(QIODevice::ReadOnly);
         if(!isOpen)
         {
@@ -225,6 +228,8 @@ void Dlog::on_sendfile_clicked()
         }
         else
         {
+            in = new QDataStream(file);
+            in->setVersion(QDataStream::Qt_5_9);
             ui->sendfile->setDisabled(true);
             ClientSendDatagram(fri.addr); // just send file head
         }
@@ -241,16 +246,19 @@ void Dlog::ClientReadDatagram()
         datagram.resize(clientUdpSocket->pendingDatagramSize());
         clientUdpSocket->readDatagram(datagram.data(), datagram.size(), &nullhost, &nullport);
 
-        qDebug() << datagram;
         if(datagram == "OK")
         {
-            qDebug() << "send ok";
+            isError = false;
             ClientSendDatagram(serverPort);
         }
         else if(datagram == "REJECT")
         {
-            qDebug() << "send reject";
             return;
+        }
+        else if(datagram == "ERROR")
+        {
+            isError = true;
+            ClientSendDatagram(serverPort);
         }
         else // recv the server's port
         {
@@ -262,11 +270,10 @@ void Dlog::ClientReadDatagram()
 
 void Dlog::ClientSendDatagram(const string &targetPort)
 {
+    QString filePath = ui->showfilename->text();
+    QFileInfo *fileInfo = new QFileInfo(filePath);
     if(isHead) // send file head
     {
-        QString filePath = ui->showfilename->text();
-        QFileInfo *fileInfo = new QFileInfo(filePath);
-
         QString fileHeadMsg = QString::fromStdString(name) + "?" + QString::fromStdString(udpPort) + "?" +
                         fileInfo->fileName() + "?" + QString::number(fileInfo->size());
         // the target port is shared with TCP port
@@ -277,15 +284,40 @@ void Dlog::ClientSendDatagram(const string &targetPort)
     {
         if(!file->atEnd())
         {
-            QByteArray msg;
-            /////////////////////////////
-//            QDataStream in(&file);
-//            in.setVersion(QDataStream::Qt_5_9);
-            msg = file->read(512);
-            int length = clientUdpSocket->writeDatagram(msg.data(), QHostAddress::LocalHost, (quint16)atoi(targetPort.c_str()));
-            sendLength += length;
-            ui->progressBar->setValue(sendLength);
-            qDebug() << QString::number(length);
+            if(!isError) // udp error
+            {
+                QByteArray msg;
+                QByteArray link = "M_D_5_VERIFY";
+                msg.resize(DATASIZE+1);
+                vector<string>v;
+                SplitStr(fileInfo->fileName().toStdString(), v, ".");
+                if(v[1] == "exe" || v[1] == "dll" || v[1] == "jpg" || v[1] == "png" || v[1] == "mkv") // binary
+                {
+                    in->readRawData(msg.data(), DATASIZE);
+                    qDebug() << strlen(msg.data());
+                    qDebug() << msg.size();
+                    qDebug() << msg.length();
+                }
+                else
+                {
+                    msg = file->read(DATASIZE);
+                }
+                msg.append(link);
+                Md5Encode md5;
+                QString readyVerify = msg;
+                string verifyResult = md5.Encode(readyVerify.toStdString());
+                msg.append(QString::fromStdString(verifyResult).toLatin1());
+                buf.clear();
+                buf = msg;
+                int length = clientUdpSocket->writeDatagram(msg, QHostAddress::LocalHost, (quint16)atoi(targetPort.c_str()));
+    //            sendLength += length;
+    //            ui->progressBar->setValue(sendLength);
+    //            qDebug() << QString::number(length);
+            }
+            else
+            {
+                clientUdpSocket->writeDatagram(buf, QHostAddress::LocalHost, (quint16)atoi(targetPort.c_str()));
+            }
         }
         else
         {
@@ -293,17 +325,16 @@ void Dlog::ClientSendDatagram(const string &targetPort)
             clientUdpSocket->writeDatagram( "OVER", 4, QHostAddress::LocalHost, (quint16)atoi(targetPort.c_str()));
             QMessageBox::information(this, QString::fromLocal8Bit("完成"), QString::fromLocal8Bit("文件传输成功！"));
             sendLength = 0;
-            ui->progressBar->hide();
+//            ui->progressBar->hide();
             file->close();
             delete file;
+            delete in;
             return;
         }
     }
 }
 
 ////////////// server receive file ///////////////
-/// \brief Dlog::ServerReadDatagram
-/// Receive the file head information
 void Dlog::ServerReadDatagram()
 {
     while(ServerUdpSocket->hasPendingDatagrams())

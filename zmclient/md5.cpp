@@ -29,12 +29,12 @@ UInt32 Md5Encode::FillData(const char *in_data_ptr, int data_byte_len, char** ou
     int bit_num = data_byte_len*BIT_OF_BYTE;
     int mod_bit_num = bit_num % BIT_OF_GROUP;
     int bit_need_fill = 0;
-    if (mod_bit_num > (BIT_OF_GROUP -  SRC_DATA_LEN)) {
+    if (mod_bit_num > (BIT_OF_GROUP - SRC_DATA_LEN)) {
         bit_need_fill = (BIT_OF_GROUP - mod_bit_num);
-        bit_need_fill += (BIT_OF_GROUP -  SRC_DATA_LEN);
+        bit_need_fill += (BIT_OF_GROUP - SRC_DATA_LEN);
     }
     else {
-        bit_need_fill = (BIT_OF_GROUP -  SRC_DATA_LEN) - mod_bit_num; //  这里多加了一个BIT_OF_GROUP，避免bit_need_fill正好等于0,暂时不加
+        bit_need_fill = (BIT_OF_GROUP - SRC_DATA_LEN) - mod_bit_num; //  这里多加了一个BIT_OF_GROUP，避免bit_need_fill正好等于0,暂时不加
     }
     int all_bit = bit_num + bit_need_fill;
     if (0 < bit_need_fill) {
@@ -187,7 +187,7 @@ std::string Md5Encode::Encode(std::string src_info) {
         RotationCalculate(data_BIT_OF_GROUP, param);
     }
     if (NULL != out_data_ptr) {
-        delete[] out_data_ptr, out_data_ptr =  NULL;
+        delete[] out_data_ptr, out_data_ptr = NULL;
     }
     result.append(GetHexStr(param.ua_));
     result.append(GetHexStr(param.ub_));

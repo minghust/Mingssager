@@ -32,8 +32,7 @@ SOURCES += \
     chat.cpp \
     sendtoserver.cpp \
     receivefile.cpp \
-    dlog.cpp \
-    md5.cpp
+    dlog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -42,8 +41,7 @@ HEADERS += \
     chat.h \
     sendtoserver.h \
     receivefile.h \
-    dlog.h \
-    md5_encode.h
+    dlog.h
 
 FORMS += \
         mainwindow.ui \

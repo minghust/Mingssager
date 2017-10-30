@@ -6,7 +6,7 @@
 #include <sstream>
 #include <QDataStream>
 #include <QStringList>
-
+#include <QCryptographicHash>
 typedef struct
 {
     string fromName;
@@ -20,6 +20,7 @@ string recvPort = "";
 void GeneUdpPort();
 const int MIN = 40000;
 const int MAX = 45000;
+const int DATASIZ = 1500;
 
 ReceiveFile::ReceiveFile(QWidget *parent) : QDialog(parent), ui(new Ui::ReceiveFile)
 {
@@ -34,7 +35,7 @@ ReceiveFile::ReceiveFile(QWidget *parent) : QDialog(parent), ui(new Ui::ReceiveF
     ui->fromName->clear();
     ui->fileSize->clear();
     ui->storePos->clear();
-//    ui->progressBar->hide();
+    ui->progressBar->hide();
     recvLength = 0;
 
     ui->fromName->setText(QString::fromStdString(rfInfo.fromName));
@@ -88,28 +89,20 @@ void ReceiveFile::ServerReceiveFile()
 //            ui->progressBar->hide();
             QMessageBox::information(this, QString::fromLocal8Bit("成功"), QString::fromLocal8Bit("接收文件成功！"));
             udpsocket->close();
+            file.close();
             delete out;
             this->close();
             return;
         }
-//        recvLength += length;
-//        ui->progressBar->setValue(recvLength);
-
-        QString recvData = datagram;
-        QStringList li = recvData.split("M_D_5_VERIFY");
-        Md5Encode md5;
-        if(md5.Encode(li[0].toStdString()) == li[1].toStdString())
+        QDataStream ds(&datagram, QIODevice::ReadOnly);
+        ds.setVersion(QDataStream::Qt_5_9);
+        QByteArray msg;
+        QByteArray md5;
+        ds >> msg >> md5;
+        QByteArray md5code = QCryptographicHash::hash(msg, QCryptographicHash::Md5);
+        if(md5code == md5)
         {
-            // different file type, do different things
-            QStringList list = ui->fileName->text().split(".");
-            if(list[1] == "exe" || list[1] == "dll" || list[1] == "jpg" || list[1] == "png" || list[1] == "mkv") // binary
-            {
-                out->writeRawData(datagram, datagram.size());
-            }
-            else
-            {
-                file.write(datagram.data(), datagram.size());
-            }
+            file.write(msg);
             udpsocket->writeDatagram("OK", 2, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
         }
         else

@@ -3,6 +3,7 @@
 
 #include <ctime>
 #include <sstream>
+#include <QCryptographicHash>
 #include "md5_encode.h"
 
 const int MINUDPPORTNUM = 30000;
@@ -56,7 +57,7 @@ Dlog::Dlog(QWidget *parent) : QWidget(parent), ui(new Ui::Dlog)
     ui->userName->setText("From: " + QString::fromStdString(name));
     ui->sendto->clear();
     ui->sendto->setText("To: "+QString::fromStdString(fri.name));
-//    ui->progressBar->hide();
+    ui->progressBar->hide();
     sendLength = 0;
 
     clientsocket = new QTcpSocket(this);
@@ -286,33 +287,20 @@ void Dlog::ClientSendDatagram(const string &targetPort)
         {
             if(!isError) // udp error
             {
-                QByteArray msg;
-                QByteArray link = "M_D_5_VERIFY";
-                msg.resize(DATASIZE+1);
-                vector<string>v;
-                SplitStr(fileInfo->fileName().toStdString(), v, ".");
-                if(v[1] == "exe" || v[1] == "dll" || v[1] == "jpg" || v[1] == "png" || v[1] == "mkv") // binary
-                {
-                    in->readRawData(msg.data(), DATASIZE);
-                    qDebug() << strlen(msg.data());
-                    qDebug() << msg.size();
-                    qDebug() << msg.length();
-                }
-                else
-                {
-                    msg = file->read(DATASIZE);
-                }
-                msg.append(link);
-                Md5Encode md5;
-                QString readyVerify = msg;
-                string verifyResult = md5.Encode(readyVerify.toStdString());
-                msg.append(QString::fromStdString(verifyResult).toLatin1());
+                QByteArray msg = file->read(DATASIZE);
                 buf.clear();
-                buf = msg;
-                int length = clientUdpSocket->writeDatagram(msg, QHostAddress::LocalHost, (quint16)atoi(targetPort.c_str()));
-    //            sendLength += length;
-    //            ui->progressBar->setValue(sendLength);
-    //            qDebug() << QString::number(length);
+                QByteArray md5code = QCryptographicHash::hash(msg, QCryptographicHash::Md5);
+                QByteArray sendqba;
+                QDataStream ds(&sendqba, QIODevice::ReadWrite);
+                QDataStream ds__(&buf, QIODevice::ReadWrite);
+                ds.setVersion(QDataStream::Qt_5_9);
+                ds__.setVersion(QDataStream::Qt_5_9);
+                ds << msg << md5code;
+                ds__ << msg << md5code;
+                int length = clientUdpSocket->writeDatagram(sendqba, QHostAddress::LocalHost, (quint16)atoi(targetPort.c_str()));
+//             sendLength += length;
+//             ui->progressBar->setValue(sendLength);
+//             qDebug() << QString::number(length);
             }
             else
             {

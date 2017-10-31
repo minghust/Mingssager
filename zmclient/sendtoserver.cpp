@@ -3,13 +3,16 @@
 #include <QDebug>
 #include <QAbstractSocket>
 #include <sstream>
-
+#include <QHostAddress>
+#include <QAbstractSocket>
+#include <QNetworkInterface>
 const int MINPORTNUM = 20000;
 const int MAXPORTNUM = 25000;
 // receive user list from server, used for chat and transfer files.
 string userList = "";
 string port = "";
-
+string ip = "";
+QString serverIP = "10.12.205.198";
 typedef struct
 {
     string fromName;
@@ -22,22 +25,29 @@ void Split(const string& s, vector<string>& v, const string& c);
 
 int SendtoServer(string str, string option)
 {
+    foreach (const QHostAddress &address, QNetworkInterface::allAddresses()) {
+        if (address.protocol() == QAbstractSocket::IPv4Protocol && address != QHostAddress(QHostAddress::LocalHost))
+             ip = address.toString().toStdString();
+    }
+
     char sendBuf[BUFLEN], recvBuf[BUFLEN];
     string tmp = option;
 
     GeneratePort();
     option = option + "!" + str;
+    memset(sendBuf, '\0', BUFLEN);
     strcpy(sendBuf, option.c_str());
     memset(recvBuf, '\0', BUFLEN);
 
     QTcpSocket *clientsocket = new QTcpSocket();
-    clientsocket->connectToHost("127.0.0.1", 5050);
+//    clientsocket->connectToHost("127.0.0.1", 5050);
+    clientsocket->connectToHost(QHostAddress(serverIP), 5050);
     clientsocket->waitForConnected();
 
     if(tmp == "login")
     {
         memset(sendBuf, '\0', BUFLEN);
-        option = option + "+" + port;
+        option = option + "+" + ip + "+" + port;
         strcpy(sendBuf, option.c_str());
 
         clientsocket->write(sendBuf, strlen(sendBuf)+1);
@@ -51,8 +61,8 @@ int SendtoServer(string str, string option)
             clientsocket->waitForReadyRead();
             clientsocket->read(recvBuf, BUFLEN);
 
-            // recvBuf: name+xxxx+false!name+xxxxx+false!%fromName+msg!fromName+msg!
-            // recvBuf: name+xxxx+false!name+xxxxx+false!%none
+            // recvBuf: name+-.-.-.-+xxxx+false!name+-.-.-.-+xxxxx+false!%fromName+msg!fromName+msg!
+            // recvBuf: name+-.-.-.-+xxxx+false!name+-.-.-.-+xxxxx+false!%none
             string recv;
             vector<string>v;
             recv = recvBuf;

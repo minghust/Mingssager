@@ -40,7 +40,6 @@ private:
     int recvLength;
     QUdpSocket *udpsocket;
     QFile file;
-    QDataStream *out;
 };
 
 #endif // RECEIVEFILE_H

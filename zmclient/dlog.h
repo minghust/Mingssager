@@ -42,7 +42,7 @@ public:
     void NewListen();
     void ClientSendMsg(const string &str);
     void AppendMessage(const string & nm, const string &message);
-    void ClientSendDatagram(const string &targetPort);
+    void ClientSendDatagram(const string &targetIP, const string &targetPort);
     QUdpSocket *ServerUdpSocket;
     ~Dlog();
 
@@ -69,7 +69,6 @@ private:
     QFile *file;
     int sendLength;
     ReceiveFile * recv;
-    QDataStream *in;
 };
 
 #endif // DLOG_H

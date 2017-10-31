@@ -12,6 +12,7 @@ const int BUFLEN = 500;
 typedef struct
 {
     string name;
+    string ip;
     string addr;
     string isOnline;
 }Record;
@@ -22,12 +23,14 @@ typedef struct
     string msg;
 }OfflineMessage;
 
-Record fri = {"", "", ""};
+Record fri = {"", "", "", ""};
 
 // One record format: "<name>+<addr_port>+<isOnline>!"
 extern string userList;
 extern string name;
+extern string ip;
 extern string port;
+extern QString serverIP;
 extern vector<OfflineMessage>offlinev;
 
 void SplitString(const string& s, vector<string>& v, const string& c);
@@ -60,8 +63,9 @@ void Chat::chooseItem(QListWidgetItem *item)
     vector<string>v;
     SplitString(item->text().toStdString(), v, " ");
     fri.name = v[0];
-    fri.addr = v[1];
-    fri.isOnline = v[2];
+    fri.ip = v[1];
+    fri.addr = v[2];
+    fri.isOnline = v[3];
     Dlog *dl = new Dlog();
     dl->show();
 }
@@ -70,7 +74,7 @@ void Chat::closeEvent(QCloseEvent *event)
 {
     // close the window
     QTcpSocket *clientsocket = new QTcpSocket();
-    clientsocket->connectToHost("127.0.0.1", 5050);
+    clientsocket->connectToHost(QHostAddress(serverIP), 5050);
     clientsocket->waitForConnected();
 
     string s = "offline!" + name;
@@ -95,15 +99,17 @@ void Chat::ShowUserList(string str)
     {
         vector<string>v;
         SplitString(*it, v, "+");
-        Record tmp = {v[0], v[1], v[2]};
+        Record tmp = {v[0], v[1], v[2], v[3]};
         recd.push_back(tmp);
     }
     // show recd in ui->friendsList
     ui->friendsList->clear();
     for(unsigned i=0; i<recd.size(); i++)
     {
-        ui->friendsList->addItem(QString::fromStdString(recd[i].name) + " " + QString::fromStdString(recd[i].addr)
-                                 + " " + QString::fromStdString(recd[i].isOnline));
+        ui->friendsList->addItem(QString::fromStdString(recd[i].name) + " " +
+                                 QString::fromStdString(recd[i].ip) + " " +
+                                 QString::fromStdString(recd[i].addr) + " " +
+                                 QString::fromStdString(recd[i].isOnline));
     }
 }
 
@@ -126,12 +132,12 @@ void SplitString(const string& s, vector<string>& v, const string& c)
 void Chat::on_updateList_clicked()
 {
     QTcpSocket *clientsocket = new QTcpSocket(this);
-    clientsocket->connectToHost("127.0.0.1", 5050);
+    clientsocket->connectToHost(QHostAddress(serverIP), 5050);
     clientsocket->waitForConnected();
     char recvBuf[BUFLEN];
     char sendBuf[BUFLEN];
     memset(recvBuf, '\0', BUFLEN);
-    string s = "update!" + name + "+" + port;
+    string s = "update!" + name + "+" + ip + "+" + port;
     strcpy(sendBuf, s.c_str());
 
     clientsocket->write(sendBuf, strlen(sendBuf)+1);

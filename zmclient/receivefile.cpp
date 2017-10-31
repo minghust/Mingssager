@@ -1,7 +1,6 @@
 #include "receivefile.h"
 #include "ui_receivefile.h"
 #include "dlog.h"
-#include "md5_encode.h"
 #include <ctime>
 #include <sstream>
 #include <QDataStream>
@@ -10,12 +9,14 @@
 typedef struct
 {
     string fromName;
+    string fromIP;
     string fromPort;
     string fileSize;
     string fileName;
 }RFInfo; // receive file info
 
 extern RFInfo rfInfo;
+extern string ip;
 string recvPort = "";
 void GeneUdpPort();
 const int MIN = 40000;
@@ -43,7 +44,7 @@ ReceiveFile::ReceiveFile(QWidget *parent) : QDialog(parent), ui(new Ui::ReceiveF
     ui->fileSize->setText(QString::fromStdString(rfInfo.fileSize)+" bytes");
 
     udpsocket = new QUdpSocket(this);
-    udpsocket->bind(QHostAddress::LocalHost, quint16(atoi(recvPort.c_str())));
+    udpsocket->bind(QHostAddress(QString::fromStdString(ip)), quint16(atoi(recvPort.c_str())));
     connect(udpsocket, SIGNAL(readyRead()), this, SLOT(ServerReceiveFile()));
 }
 
@@ -62,7 +63,8 @@ void ReceiveFile::on_buttonBox_accepted()
         return;
     }
     // send receive port to respond has received the fileHeadInfo and agree to receive file body.
-    udpsocket->writeDatagram(recvPort.c_str(), strlen(recvPort.c_str()) + 1, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
+    string sendmsg = ip + "+" + recvPort;
+    udpsocket->writeDatagram(sendmsg.c_str(), strlen(sendmsg.c_str()) + 1, QHostAddress(QString::fromStdString(rfInfo.fromIP)), (quint16)atoi(rfInfo.fromPort.c_str()));
     file.setFileName(ui->storePos->text());
 //    ui->progressBar->show();
     if(!file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Unbuffered))
@@ -70,8 +72,6 @@ void ReceiveFile::on_buttonBox_accepted()
         QMessageBox::warning(this, "create", "create file error");
         return;
     }
-    out = new QDataStream(&file);
-    out->setVersion(QDataStream::Qt_5_9);
 }
 
 void ReceiveFile::ServerReceiveFile()
@@ -90,11 +90,10 @@ void ReceiveFile::ServerReceiveFile()
             QMessageBox::information(this, QString::fromLocal8Bit("成功"), QString::fromLocal8Bit("接收文件成功！"));
             udpsocket->close();
             file.close();
-            delete out;
             this->close();
             return;
         }
-        QDataStream ds(&datagram, QIODevice::ReadOnly);
+        QDataStream ds(&datagram, QIODevice::ReadWrite);
         ds.setVersion(QDataStream::Qt_5_9);
         QByteArray msg;
         QByteArray md5;
@@ -103,18 +102,18 @@ void ReceiveFile::ServerReceiveFile()
         if(md5code == md5)
         {
             file.write(msg);
-            udpsocket->writeDatagram("OK", 2, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
+            udpsocket->writeDatagram("OK", 2, QHostAddress(QString::fromStdString(rfInfo.fromIP)), (quint16)atoi(rfInfo.fromPort.c_str()));
         }
         else
         {
-            udpsocket->writeDatagram("ERROR", 5, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
+            udpsocket->writeDatagram("ERROR", 5, QHostAddress(QString::fromStdString(rfInfo.fromIP)), (quint16)atoi(rfInfo.fromPort.c_str()));
         }
     }
 }
 
 void ReceiveFile::on_buttonBox_rejected()
 {
-    udpsocket->writeDatagram("REJECT", 6, QHostAddress::LocalHost, (quint16)atoi(rfInfo.fromPort.c_str()));
+    udpsocket->writeDatagram("REJECT", 6, QHostAddress(QString::fromStdString(rfInfo.fromIP)), (quint16)atoi(rfInfo.fromPort.c_str()));
     udpsocket->close();
     this->close();
     return;
@@ -124,7 +123,7 @@ void ReceiveFile::on_store_clicked()
 {
     fDialog = new QFileDialog(this);
     fDialog->setFileMode(QFileDialog::Directory);
-    fDialog->setDirectory("C:\\Users\\ZhangMing\\Desktop\\receive\\");
+    fDialog->setDirectory("D:\\");
     fDialog->show();
     connect(fDialog,SIGNAL(fileSelected ( const QString & )),this,SLOT(SetFileName(const QString & )));
 }

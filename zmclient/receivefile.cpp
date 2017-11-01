@@ -18,11 +18,11 @@ typedef struct
 extern RFInfo rfInfo;
 extern string ip;
 string recvPort = "";
-void GeneUdpPort();
-const int MIN = 40000;
-const int MAX = 45000;
-const int DATASIZ = 1500;
 
+void GeneUdpPort();
+const int MIN = 58000;
+const int MAX = 60000;
+const int TIMEOUT = 4000;
 ReceiveFile::ReceiveFile(QWidget *parent) : QDialog(parent), ui(new Ui::ReceiveFile)
 {
     GeneUdpPort();
@@ -46,6 +46,9 @@ ReceiveFile::ReceiveFile(QWidget *parent) : QDialog(parent), ui(new Ui::ReceiveF
     udpsocket = new QUdpSocket(this);
     udpsocket->bind(QHostAddress(QString::fromStdString(ip)), quint16(atoi(recvPort.c_str())));
     connect(udpsocket, SIGNAL(readyRead()), this, SLOT(ServerReceiveFile()));
+
+    time = new QTimer(this);
+    connect(time, SIGNAL(timeout()), this, SLOT(ReSend()));
 }
 
 ReceiveFile::~ReceiveFile()
@@ -53,6 +56,7 @@ ReceiveFile::~ReceiveFile()
     delete ui;
     delete fDialog;
     delete udpsocket;
+    delete time;
 }
 
 void ReceiveFile::on_buttonBox_accepted()
@@ -78,11 +82,12 @@ void ReceiveFile::ServerReceiveFile()
 {
     while(udpsocket->hasPendingDatagrams())
     {
+        time->stop();
         QByteArray datagram;
         QHostAddress host;
         quint16 port;
         datagram.resize(udpsocket->pendingDatagramSize());
-        int length = udpsocket->readDatagram(datagram.data(), datagram.size(), &host, &port);
+        udpsocket->readDatagram(datagram.data(), datagram.size(), &host, &port);
         if(datagram == "OVER")
         {
             recvLength = 0;
@@ -90,6 +95,7 @@ void ReceiveFile::ServerReceiveFile()
             QMessageBox::information(this, QString::fromLocal8Bit("成功"), QString::fromLocal8Bit("接收文件成功！"));
             udpsocket->close();
             file.close();
+            time->stop();
             this->close();
             return;
         }
@@ -103,12 +109,20 @@ void ReceiveFile::ServerReceiveFile()
         {
             file.write(msg);
             udpsocket->writeDatagram("OK", 2, QHostAddress(QString::fromStdString(rfInfo.fromIP)), (quint16)atoi(rfInfo.fromPort.c_str()));
+            time->start(TIMEOUT);
         }
         else
         {
             udpsocket->writeDatagram("ERROR", 5, QHostAddress(QString::fromStdString(rfInfo.fromIP)), (quint16)atoi(rfInfo.fromPort.c_str()));
+            time->start(TIMEOUT);
         }
     }
+}
+
+void ReceiveFile::ReSend()
+{
+    udpsocket->writeDatagram("ERROR", 5, QHostAddress(QString::fromStdString(rfInfo.fromIP)), (quint16)atoi(rfInfo.fromPort.c_str()));
+    time->start(TIMEOUT);
 }
 
 void ReceiveFile::on_buttonBox_rejected()

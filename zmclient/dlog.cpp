@@ -5,10 +5,10 @@
 #include <sstream>
 #include <QCryptographicHash>
 
-const int MINUDPPORTNUM = 30000;
-const int MAXUDPPORTNUM = 35000;
+const int MINUDPPORTNUM = 55000;
+const int MAXUDPPORTNUM = 57000;
 const int BUFLEN = 500;
-const int DATASIZE = 1500;
+const int DATASIZE = 8192;
 bool isError;
 QByteArray buf;
 typedef struct
@@ -63,23 +63,27 @@ Dlog::Dlog(QWidget *parent) : QWidget(parent), ui(new Ui::Dlog)
     ui->progressBar->hide();
     sendLength = 0;
 
-    clientsocket = new QTcpSocket(this);
-    serversocket = new QTcpServer(this);
-    clientUdpSocket = new QUdpSocket(this);
-    ServerUdpSocket = new QUdpSocket(this);
-    serverResSocket = new QTcpSocket(this);
+    clientsocket = new QTcpSocket(this); // user to send message to another client
+    serversocket = new QTcpServer(this); // use to listen connection
+    clientUdpSocket = new QUdpSocket(this); // use to receive another client's udpPort and send datagram
+    ServerUdpSocket = new QUdpSocket(this); // user to receive file header info
+    serverResSocket = new QTcpSocket(this); // use to chat with another client
 
     GenerateUdpPort();
 
     if(!offlinev.empty())
     {
-        for(auto it = offlinev.begin(); it!=offlinev.end(); it++)
+        for(auto it = offlinev.begin(); it!=offlinev.end();)
         {
-            AppendMessage(it->fromName, it->msg);
+            if(it->fromName == fri.name)
+            {
+                AppendMessage(it->fromName, it->msg);
+                it = offlinev.erase(it);
+            }
+            else
+                it++;
         }
     }
-    offlinev.clear(); // clear offline messages after showing them
-
     // send by client, recv by server
     NewListen();
     connect(serversocket, SIGNAL(newConnection()),this, SLOT(AcceptConnect()));
@@ -104,7 +108,6 @@ Dlog::~Dlog()
     delete serverResSocket;
     delete ServerUdpSocket;
     delete recv;
-    qDebug("ui, clientsocket, serversocket, clientudpsocket, serverRessocket, serverudpsocket, recv boom");
 }
 
 
@@ -129,7 +132,7 @@ void Dlog::on_sendmsg_clicked()
 void Dlog::ClientSendMsg(const string &str)
 {
     clientsocket->abort();
-    if(fri.isOnline == "true")
+    if(fri.isOnline == "ON")
     {
         clientsocket->connectToHost(QHostAddress(QString::fromStdString(fri.ip)), atoi(fri.addr.c_str()));
         clientsocket->waitForConnected();
@@ -145,12 +148,11 @@ void Dlog::ClientSendMsg(const string &str)
         clientsocket->write(sendBuf, strlen(sendBuf)+1);
         clientsocket->waitForBytesWritten();
     }
-    else if(fri.isOnline == "false")
+    else if(fri.isOnline == "OFF")
     {
-        // send offline message to server
-        clientsocket->connectToHost(QHostAddress(serverIP), 5050);
+        clientsocket->connectToHost(QHostAddress(serverIP), 60000);
         clientsocket->waitForConnected();
-        qDebug("connect to server");
+        qDebug("connect to server: ");
 
         char sendBuf[BUFLEN];
         strcpy(sendBuf, str.c_str());

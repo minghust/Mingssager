@@ -3,16 +3,17 @@
 #include <QDebug>
 #include <QAbstractSocket>
 #include <sstream>
+#include <QHostInfo>
 #include <QHostAddress>
 #include <QAbstractSocket>
 #include <QNetworkInterface>
-const int MINPORTNUM = 20000;
-const int MAXPORTNUM = 25000;
+const int MINPORTNUM = 50000;
+const int MAXPORTNUM = 53000;
 // receive user list from server, used for chat and transfer files.
 string userList = "";
 string port = "";
 string ip = "";
-QString serverIP = "10.12.205.198";
+QString serverIP = "192.168.1.1";
 typedef struct
 {
     string fromName;
@@ -25,9 +26,13 @@ void Split(const string& s, vector<string>& v, const string& c);
 
 int SendtoServer(string str, string option)
 {
-    foreach (const QHostAddress &address, QNetworkInterface::allAddresses()) {
+    QString localHostName = QHostInfo::localHostName();
+
+    QHostInfo info = QHostInfo::fromName(localHostName);
+    foreach(QHostAddress address,info.addresses())
+    {
         if (address.protocol() == QAbstractSocket::IPv4Protocol && address != QHostAddress(QHostAddress::LocalHost))
-             ip = address.toString().toStdString();
+            ip = address.toString().toStdString();
     }
 
     char sendBuf[BUFLEN], recvBuf[BUFLEN];
@@ -40,8 +45,7 @@ int SendtoServer(string str, string option)
     memset(recvBuf, '\0', BUFLEN);
 
     QTcpSocket *clientsocket = new QTcpSocket();
-//    clientsocket->connectToHost("127.0.0.1", 5050);
-    clientsocket->connectToHost(QHostAddress(serverIP), 5050);
+    clientsocket->connectToHost(QHostAddress(serverIP), 60000);
     clientsocket->waitForConnected();
 
     if(tmp == "login")

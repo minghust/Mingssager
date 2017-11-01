@@ -13,7 +13,7 @@
 #include <QMessageBox>
 #include <QHostAddress>
 #include <QDataStream>
-
+#include <QTimer>
 #include <cstdlib> // atoi()
 namespace Ui {
 class ReceiveFile;
@@ -34,7 +34,10 @@ private slots:
 
     void on_store_clicked();
     void SetFileName(const QString & dpath);
+
+    void ReSend();
 private:
+    QTimer *time;
     Ui::ReceiveFile *ui;
     QFileDialog *fDialog;
     int recvLength;

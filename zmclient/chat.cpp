@@ -60,6 +60,7 @@ Chat::~Chat()
 
 void Chat::chooseItem(QListWidgetItem *item)
 {
+    fri = {"", "", "", ""};
     vector<string>v;
     SplitString(item->text().toStdString(), v, " ");
     fri.name = v[0];
@@ -74,7 +75,7 @@ void Chat::closeEvent(QCloseEvent *event)
 {
     // close the window
     QTcpSocket *clientsocket = new QTcpSocket();
-    clientsocket->connectToHost(QHostAddress(serverIP), 5050);
+    clientsocket->connectToHost(QHostAddress(serverIP), 60000);
     clientsocket->waitForConnected();
 
     string s = "offline!" + name;
@@ -132,7 +133,7 @@ void SplitString(const string& s, vector<string>& v, const string& c)
 void Chat::on_updateList_clicked()
 {
     QTcpSocket *clientsocket = new QTcpSocket(this);
-    clientsocket->connectToHost(QHostAddress(serverIP), 5050);
+    clientsocket->connectToHost(QHostAddress(serverIP), 60000);
     clientsocket->waitForConnected();
     char recvBuf[BUFLEN];
     char sendBuf[BUFLEN];

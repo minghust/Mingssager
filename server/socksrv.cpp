@@ -66,9 +66,9 @@ void main(int argc, char* argv[])
 	}
 	printf("Server TCP socket create OK!\n");
 
-	//绑定 socket to Server's IP and port 5050
+	//绑定 socket to Server's IP and port 60000
 	srvAddr.sin_family = AF_INET;
-	srvAddr.sin_port = htons(5050);
+	srvAddr.sin_port = htons(60000);
 	srvAddr.sin_addr.S_un.S_addr = INADDR_ANY;
 	nRC = bind(srvSock, (LPSOCKADDR)&srvAddr, sizeof(srvAddr));
 	if (nRC == SOCKET_ERROR)
@@ -135,7 +135,7 @@ void main(int argc, char* argv[])
 				WSACleanup();
 				return;
 			}
-			sprintf(sendBuf, "%s",inet_ntoa(clientAddr.sin_addr));
+			sprintf(sendBuf, "%s", inet_ntoa(clientAddr.sin_addr));
 			printf("%s: ", sendBuf);
 			printf("%u\n", clientAddr.sin_port);
 
@@ -167,7 +167,7 @@ void main(int argc, char* argv[])
 						// 以发送到所有客户去
 						if (op[0] == LOGIN)
 						{
-							cout << "recvBuf" << op[1] << endl;
+							cout << "recvBuf: " << op[1] << endl;
 							vector<string> v;
 							SplitString(op[1], v, "+");
 							memset(sendBuf, '\0', BUFLEN);
@@ -184,10 +184,11 @@ void main(int argc, char* argv[])
 									if (userList[i].name == v[0])
 									{
 										userList[i].isOnline = true;
-										userList[i].port = v[2];
+										userList[i].ip = v[2];
+										userList[i].port = v[3];
 									}
-									s += userList[i].name + "+" + userList[i].port + "+";
-									s += userList[i].isOnline ? "true!" : "false!";
+									s += userList[i].name + "+" + userList[i].ip + "+" + userList[i].port + "+";
+									s += userList[i].isOnline ? "ON!" : "OFF!";
 								}
 								s += "%";
 								string t = s;
@@ -235,6 +236,7 @@ void main(int argc, char* argv[])
 							cout << "recvBuf:" << op[1] << endl;
 							SplitString(op[1], v, "+");
 							memset(sendBuf, '\0', BUFLEN);
+							// name + email + passwd
 							bool re = SaveInfo(v[0], v[1], v[2]);
 							if (re)
 							{
@@ -272,6 +274,7 @@ void main(int argc, char* argv[])
 								if (userList[i].name == op[1])
 								{
 									userList[i].isOnline = false;
+									userList[i].ip = "-.-.-.-";
 									userList[i].port = "xxxxx";
 								}
 							}
@@ -288,11 +291,11 @@ void main(int argc, char* argv[])
 								if (userList[i].name == v[0])
 								{
 									userList[i].isOnline = true;
-									userList[i].port = v[1];
+									userList[i].ip = v[1];
+									userList[i].port = v[2];
 								}
-								s += userList[i].name + "+" + userList[i].port + "+";
-								s += userList[i].isOnline ? "true" : "false";
-								s += "!";
+								s += userList[i].name + "+" + userList[i].ip + "+" + userList[i].port + "+";
+								s += userList[i].isOnline ? "ON!" : "OFF!";
 							}
 							sprintf(sendBuf, "%s", s.c_str());
 							send(*itor, sendBuf, strlen(sendBuf), 0);
@@ -301,7 +304,7 @@ void main(int argc, char* argv[])
 						{
 							vector<string>v;
 							SplitString(op[1], v, "+");
-							OfflineMessage tmp = { v[0], v[1], v[2]};
+							OfflineMessage tmp = { v[0], v[1], v[2] };
 							offlineBuf.push_back(tmp);
 						}
 					}

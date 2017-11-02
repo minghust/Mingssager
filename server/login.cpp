@@ -123,7 +123,7 @@ void UpdateUserList(std::vector<UserList> &ul)
 				if (buf1.empty()) return;
 				getline(f, buf2);
 				getline(f, buf2);
-				UserList tmp = { buf1, "xxxxx", false };
+				UserList tmp = { buf1, "-.-.-.-", "xxxxx", false };
 				ul.push_back(tmp);
 			}
 			return;
@@ -142,7 +142,7 @@ void UpdateUserList(std::vector<UserList> &ul)
 					getline(f, buf2);
 					while (f.good() && !buf1.empty()) // not the last user
 					{
-						UserList tmp = { buf1, "xxxxx", false };
+						UserList tmp = { buf1, "-.-.-.-", "xxxxx", false };
 						ul.push_back(tmp);
 						getline(f, buf1); // name
 						getline(f, buf2);

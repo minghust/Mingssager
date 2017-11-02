@@ -18,6 +18,7 @@ using std::string;
 typedef struct
 {
 	string name;
+	string ip;
 	string port;
 	bool isOnline;
 }UserList;

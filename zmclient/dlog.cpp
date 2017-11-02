@@ -315,10 +315,7 @@ void Dlog::ClientSendDatagram(const string &targetIP, const string &targetPort)
                 ds__.setVersion(QDataStream::Qt_5_9);
                 ds << msg << md5code;
                 ds__ << msg << md5code;
-                int length = clientUdpSocket->writeDatagram(sendqba, QHostAddress(QString::fromStdString(targetIP)), (quint16)atoi(targetPort.c_str()));
-//             sendLength += length;
-//             ui->progressBar->setValue(sendLength);
-//             qDebug() << QString::number(length);
+                clientUdpSocket->writeDatagram(sendqba, QHostAddress(QString::fromStdString(targetIP)), (quint16)atoi(targetPort.c_str()));
             }
             else
             {

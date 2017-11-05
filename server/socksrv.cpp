@@ -11,7 +11,7 @@
 #include "login.h"
 
 using namespace std;
-const int MAXCONN = 5;
+const int MAXCONN = 10;
 const int BUFLEN = 500;
 const string LOGIN = "login";
 const string REGISTER = "register";
@@ -36,7 +36,7 @@ void main(int argc, char* argv[])
 	ListCONN::iterator itor;
 	ListConErr conErrList;	//保存所有失效的会话SOCKET
 	ListConErr::iterator itor1;
-	FD_SET rfds, wfds;
+	FD_SET rfds;
 	u_long uNonBlock;
 
 	vector<UserList>userList;
@@ -105,7 +105,6 @@ void main(int argc, char* argv[])
 
 		//清空read,write套接字集合
 		FD_ZERO(&rfds);
-		FD_ZERO(&wfds);
 
 		//设置等待客户连接请求
 		FD_SET(srvSock, &rfds);
@@ -117,12 +116,11 @@ void main(int argc, char* argv[])
 			ioctlsocket(*itor, FIONBIO, &uNonBlock);
 			//设置等待会话SOKCET可接受数据或可发送数据
 			FD_SET(*itor, &rfds);
-			FD_SET(*itor, &wfds);
 		}
 		//开始等待
-		int nTotal = select(0, &rfds, &wfds, NULL, NULL);
+		int nTotal = select(0, &rfds, NULL, NULL, NULL);
 
-		//如果srvSock收到连接请求，接受客户连接请求
+		//如果srvSock收到连接请求，接受客户连接请求, 用于测试srvSock是否在rfds中
 		if (FD_ISSET(srvSock, &rfds))
 		{
 			nTotal--;
@@ -137,7 +135,7 @@ void main(int argc, char* argv[])
 			}
 			sprintf(sendBuf, "%s", inet_ntoa(clientAddr.sin_addr));
 			printf("%s: ", sendBuf);
-			printf("%u\n", clientAddr.sin_port);
+			printf("%u has connected to server\n", clientAddr.sin_port);
 
 			//将产生的会话SOCKET保存在conList中
 			conList.insert(conList.end(), connSock);
@@ -146,7 +144,7 @@ void main(int argc, char* argv[])
 		{
 			//检查所有有效的会话SOCKET是否有数据到来
 			//或是否可以发送数据
-			for (itor = conList.begin(); itor != conList.end(); itor++)
+			for (itor = conList.begin(); itor != conList.end();)
 			{
 				//如果会话SOCKET有数据到来，则接受客户的数据
 				if (FD_ISSET(*itor, &rfds))
@@ -229,6 +227,8 @@ void main(int argc, char* argv[])
 								sprintf(sendBuf, "%s", "FILE_ERROR");
 								send(*itor, sendBuf, strlen(sendBuf), 0);
 							}
+							itor = conList.erase(itor);
+							if (itor == conList.end()) break;
 						}
 						else if (op[0] == REGISTER)
 						{
@@ -248,6 +248,8 @@ void main(int argc, char* argv[])
 								sprintf(sendBuf, "%s", "REGISTER_FAILURE");
 								send(*itor, sendBuf, strlen(sendBuf), 0);
 							}
+							itor = conList.erase(itor);
+							if (itor == conList.end()) break;
 						}
 						else if (op[0] == GETPASSWDBACK)
 						{
@@ -266,6 +268,8 @@ void main(int argc, char* argv[])
 								sprintf(sendBuf, "%s", "GETPASSWDBACK_FAILURE");
 								send(*itor, sendBuf, strlen(sendBuf), 0);
 							}
+							itor = conList.erase(itor);
+							if (itor == conList.end()) break;
 						}
 						else if (op[0] == OFFLINE)
 						{
@@ -278,6 +282,8 @@ void main(int argc, char* argv[])
 									userList[i].port = "xxxxx";
 								}
 							}
+							itor = conList.erase(itor);
+							if (itor == conList.end()) break;
 						}
 						else if (op[0] == UPDATE)
 						{
@@ -299,6 +305,8 @@ void main(int argc, char* argv[])
 							}
 							sprintf(sendBuf, "%s", s.c_str());
 							send(*itor, sendBuf, strlen(sendBuf), 0);
+							itor = conList.erase(itor);
+							if (itor == conList.end()) break;
 						}
 						else if (op[0] == MESSAGE)
 						{
@@ -306,6 +314,8 @@ void main(int argc, char* argv[])
 							SplitString(op[1], v, "+");
 							OfflineMessage tmp = { v[0], v[1], v[2] };
 							offlineBuf.push_back(tmp);
+							itor = conList.erase(itor);
+							if (itor == conList.end()) break;
 						}
 					}
 				}

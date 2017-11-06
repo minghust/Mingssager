@@ -13,7 +13,7 @@
 
 ### Implement
 
-based on **Qt** and **winsock**
+based on **Qt** and **winsock**, almost use **one month** to finish this huge software
 
 - Environment : Windows 10
 - Qt : qt 5.9 
@@ -34,4 +34,4 @@ based on **Qt** and **winsock**
 - Timeout
 - md5
 - GBN
-- Qt signal and slot
+- Qt signal and slot 

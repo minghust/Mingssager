@@ -13,7 +13,7 @@ const int MAXPORTNUM = 53000;
 string userList = "";
 string port = "";
 string ip = "";
-QString serverIP = "10.14.126.63";
+QString serverIP = "10.11.53.215";
 typedef struct
 {
     string fromName;

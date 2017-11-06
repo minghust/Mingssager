@@ -49,7 +49,7 @@ Chat::Chat(QWidget *parent) : QWidget(parent), ui(new Ui::Chat)
         {
             frname = frname + it->fromName+" ";
         }
-        QMessageBox::information(this, QString::fromLocal8Bit("好友的离线消息"), QString::fromStdString(frname));
+        QMessageBox::information(this, QString::fromLocal8Bit("离线消息"), QString::fromStdString(frname));
     }
 }
 
@@ -107,10 +107,13 @@ void Chat::ShowUserList(string str)
     ui->friendsList->clear();
     for(unsigned i=0; i<recd.size(); i++)
     {
-        ui->friendsList->addItem(QString::fromStdString(recd[i].name) + " " +
-                                 QString::fromStdString(recd[i].ip) + " " +
-                                 QString::fromStdString(recd[i].addr) + " " +
-                                 QString::fromStdString(recd[i].isOnline));
+        if(name!=recd[i].name)
+        {
+            ui->friendsList->addItem(QString::fromStdString(recd[i].name) + " " +
+                                     QString::fromStdString(recd[i].ip) + " " +
+                                     QString::fromStdString(recd[i].addr) + " " +
+                                     QString::fromStdString(recd[i].isOnline));
+        }
     }
 }
 

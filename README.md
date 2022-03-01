@@ -1,15 +1,16 @@
 # mingssager
-**要求**：基于TCP和UDP 协议实现一个即时通讯工具，体功能要求包括：
+### Requirements
 
-1. 工具包括服务器端和客户端；
-2. 具备用户注册、登录找回密码功能（基于TCP协议）；
-3. 两个用户如果同时在线，采点到通信方式进行聊天息不需要过服务器中转，服务器也不保存（基 于 TCP 协议）； 协议）；
-4. 支持离线消息（基于TCP协议）；
-5.  支持点到可靠文件传输（基UDP协议）；
-6. 存储在服务器端的数据需要进行强加密；
-7. 支持不少于两组用户同时在线交流和传输文件；
-8. 文件传输具有良好的性能，够充分利用网路带宽；
-9. 人机交互友好，软件易用性强。
+Implement an instant messaging software based on TCP and UDP:
+
+1. Include both server-side and client-side;
+2. Support user registration, login, and password retrieval (based on TCP);
+3. If two users are online at the same time, use p2p to communicate without being transited by the server (based on TCP);
+5. Support p2p **reliable** file transfer (base on UDP);
+6. The data stored on the server are strongly encrypted;
+7. Support at least two groups of users to communicate and transfer files online at the same time;
+8. File transfer shows good performance with full use of network bandwidth;
+9. User-friendly GUI.
 
 ### Implement
 
